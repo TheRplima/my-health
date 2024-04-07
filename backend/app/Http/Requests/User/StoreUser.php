@@ -31,7 +31,7 @@ class StoreUser extends FormRequest
             'email'     => 'unique:users,email|email|required',
             'name'      => 'required',
             'password'  => 'required',
-            'phone'     => 'phone',
+            'phone'     => 'nullable|numeric|digits_between:10,11',
             'dob'       => 'nullable|date'
         ];
     }

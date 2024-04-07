@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('login', [UserController::class, 'login'])->name('users.login');
+Route::post('register', [UserController::class, 'store'])->name('users.store');
+Route::group(['middleware' => 'jwt.verify'], function () {
+    Route::post('logout', [UserController::class, 'logout'])->name('users.logout');
 });
-
-Route::post('register', 'UserController@store')->name('users.store');

@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
         $user->create([
             'name' => 'Rodrigo Lima',
             'email' => 'rplima.dev@gmail.com',
-            'password' => Hash::make('102030405060708090'),
+            'password' => Hash::make('Rp!25051979'),
             'phone' => '35998094996',
             'gender' => 'M',
             'dob' => '1979-05-25',
