@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('email', 191)->unique();
             $table->string('password');
-            $table->string('phone')->nullable();
-            $table->string('gender')->nullable();
+            $table->string('phone', 20)->nullable();
+            $table->enum('gender',['M','F'])->nullable();
             $table->date('dob')->nullable();
-            $table->boolean('active');
+            $table->boolean('active')->default(1);
             $table->timestamps();
         });
     }
