@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\WaterIngestion;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,6 +13,6 @@ class WaterIngestionSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        WaterIngestion::factory(200)->create();
     }
 }
