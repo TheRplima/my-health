@@ -57,7 +57,7 @@ class WaterIngestionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Todo created successfully',
+            'message' => 'Water Ingestion created successfully',
             'waterIngestion' => $waterIngestion,
         ]);
     }
