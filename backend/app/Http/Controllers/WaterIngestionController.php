@@ -16,9 +16,24 @@ class WaterIngestionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $waterIngestions = WaterIngestion::all();
+        $request->validate([
+            'initial_date' => ['nullable', 'date', 'required_with:final_date', 'filled'],
+            'final_date' => ['nullable', 'date', 'required_with:initial_date', 'filled', 'after_or_equal:initial_date']
+        ]);
+
+        if ($request->has('initial_date') && $request->has('final_date')) {
+            $waterIngestions = auth()->user()->WaterIngestion()
+                ->whereBetween('created_at', [$request->initial_date, $request->final_date])
+                ->get();
+            return response()->json([
+                'status' => 'success',
+                'waterIngestions' => $waterIngestions,
+            ]);
+        }
+
+        $waterIngestions = auth()->user()->WaterIngestion()->get();
         return response()->json([
             'status' => 'success',
             'waterIngestions' => $waterIngestions,
@@ -31,6 +46,7 @@ class WaterIngestionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'user_id' => 'nullable|exists:users,id',
             'amount' => 'required|numeric'
         ]);
 
@@ -42,18 +58,6 @@ class WaterIngestionController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Todo created successfully',
-            'waterIngestion' => $waterIngestion,
-        ]);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        $waterIngestion = WaterIngestion::find($id);
-        return response()->json([
-            'status' => 'success',
             'waterIngestion' => $waterIngestion,
         ]);
     }
