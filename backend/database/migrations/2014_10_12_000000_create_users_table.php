@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('phone', 20)->nullable();
             $table->enum('gender',['M','F'])->nullable();
             $table->date('dob')->nullable();
+            $table->integer('height')->nullable();
+            $table->integer('weight')->nullable();
+            $table->integer('daily_water_amount')->nullable();
             $table->boolean('active')->default(1);
             $table->timestamps();
         });

@@ -21,8 +21,11 @@ class UserSeeder extends Seeder
             'phone' => '35998094996',
             'gender' => 'M',
             'dob' => '1979-05-25',
+            'height' => 168,
+            'weight' => 81,
+            'daily_water_amount' => 4500,
             'active' => 1
         ]);
-        // User::factory(50)->create();
+        // User::factory(10)->create();
     }
 }

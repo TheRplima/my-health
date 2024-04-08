@@ -30,7 +30,11 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'phone' => fake()->phoneNumber,
             'gender' => $arrayValues[rand(0,1)],
-            'dob' => fake()->date
+            'dob' => fake()->date,
+            'height' => fake()->numberBetween(60, 220),
+            'weight' => fake()->numberBetween(50, 100),
+            'daily_water_amount' => fake()->numberBetween(2000, 5000),
+            'active' => fake()->boolean
         ];
     }
 
