@@ -1,8 +1,13 @@
 <?php
+
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterUserRequest;
+use App\Http\Resources\UserResource;
+use Illuminate\Http\Request;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -10,18 +15,12 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-        $credentials = $request->only('email', 'password');
-
-        $token = Auth::attempt($credentials);
+        $token = Auth::attempt($request->validated());
         if (!$token) {
             return response()->json([
                 'status' => 'error',
@@ -31,34 +30,20 @@ class AuthController extends Controller
 
         $user = Auth::user();
         return response()->json([
-                'status' => 'success',
-                'user' => $user,
-                'authorisation' => [
-                    'token' => $token,
-                    'type' => 'bearer',
-                ]
-            ]);
-
+            'status' => 'success',
+            'user' => $user,
+            'waterIngestionsToday' => $user->waterIngestionToday,
+            'waterIngestionsTodayAmount' => $user->waterIngestionToday->sum('amount'),
+            'authorisation' => [
+                'token' => $token,
+                'type' => 'bearer',
+            ]
+        ]);
     }
 
-    public function register(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-            'phone'     => 'nullable|numeric|digits_between:10,11',
-            'gender'    => 'nullable|string|max:1',
-            'dob'       => 'nullable|date'
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'phone' => $request->phone,
-            'gender' => $request->gender,
-            'dob' => $request->dob
-        ]);
+    public function register(RegisterUserRequest $request)
+    {
+        $user = User::create(UserResource::make($request->validated())->toArray($request));
 
         $token = Auth::login($user);
         return response()->json([
@@ -92,5 +77,4 @@ class AuthController extends Controller
             ]
         ]);
     }
-
 }
