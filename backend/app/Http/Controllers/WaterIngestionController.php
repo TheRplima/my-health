@@ -42,8 +42,8 @@ class WaterIngestionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'totalAmount' => $totalAmount,
-            'waterIngestions' => $waterIngestions,
+            'total_amount' => $totalAmount,
+            'water_ingestion_list' => $waterIngestions,
         ]);
     }
 
