@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WaterIngestionController;
+use App\Http\Controllers\WeightControlController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,4 +30,10 @@ Route::controller(WaterIngestionController::class)->group(function () {
     Route::get('water-ingestion/get-water-ingestion-by-day', 'getWaterIngestionsByDay');
     Route::post('water-ingestion', 'store');
     Route::delete('water-ingestion/{id}', 'destroy');
+});
+
+Route::controller(WeightControlController::class)->group(function () {
+    Route::get('weight-control', 'index');
+    Route::post('weight-control', 'store');
+    Route::delete('weight-control/{id}', 'destroy');
 });
