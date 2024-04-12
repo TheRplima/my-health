@@ -26,6 +26,7 @@ Route::controller(AuthController::class)->group(function () {
 
 Route::controller(WaterIngestionController::class)->group(function () {
     Route::get('water-ingestions', 'index');
+    Route::get('water-ingestion/get-water-ingestion-by-day', 'getWaterIngestionsByDay');
     Route::post('water-ingestion', 'store');
     Route::delete('water-ingestion/{id}', 'destroy');
 });
