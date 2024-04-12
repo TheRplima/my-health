@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\WaterIngestion;
+use Carbon\Carbon;
 
 class WaterIngestionController extends Controller
 {
@@ -24,18 +25,24 @@ class WaterIngestionController extends Controller
         ]);
 
         if ($request->has('initial_date') && $request->has('final_date')) {
+            $initialDate = Carbon::createFromFormat('Y-m-d', $request->get('initial_date'));
+            $finalDate = Carbon::createFromFormat('Y-m-d', $request->get('final_date'));
             $waterIngestions = auth()->user()->WaterIngestion()
-                ->whereBetween('created_at', [$request->initial_date, $request->final_date])
+                ->whereDate('created_at', ">=", $initialDate)
+                ->whereDate('created_at', "<=", $finalDate)
                 ->get();
-            return response()->json([
-                'status' => 'success',
-                'waterIngestions' => $waterIngestions,
-            ]);
+        }else{
+            $waterIngestions = auth()->user()->WaterIngestion()->get();
         }
 
-        $waterIngestions = auth()->user()->WaterIngestion()->get();
+        $totalAmount = 0;
+        foreach ($waterIngestions as $waterIngestion) {
+            $totalAmount += $waterIngestion->amount;
+        }
+
         return response()->json([
             'status' => 'success',
+            'totalAmount' => $totalAmount,
             'waterIngestions' => $waterIngestions,
         ]);
     }
@@ -74,6 +81,29 @@ class WaterIngestionController extends Controller
             'status' => 'success',
             'message' => 'Water Ingestion deleted successfully',
             'waterIngestion' => $waterIngestion,
+        ]);
+    }
+
+    public function getWaterIngestionsByDay(Request $request)
+    {
+        $request->validate([
+            'date' => ['nullable', 'date', 'filled']
+        ]);
+
+        $date = $request->has('date') ? $request->get('date') : now()->toDateString();
+        $waterIngestions = auth()->user()->WaterIngestion()
+            ->whereDate('created_at', $date)
+            ->get();
+
+        $totalAmount = 0;
+        foreach ($waterIngestions as $waterIngestion) {
+            $totalAmount += $waterIngestion->amount;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'totalAmount' => $totalAmount,
+            'waterIngestions' => $waterIngestions,
         ]);
     }
 }
