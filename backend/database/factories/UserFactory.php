@@ -34,6 +34,7 @@ class UserFactory extends Factory
             'height' => fake()->numberBetween(60, 220),
             'weight' => fake()->numberBetween(50, 100),
             'daily_water_amount' => fake()->numberBetween(2000, 5000),
+            'activity_level' => fake()->randomElement([0.2, 0.375, 0.55, 0.725, 0.9]),
             'active' => fake()->boolean
         ];
     }

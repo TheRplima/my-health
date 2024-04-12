@@ -17,7 +17,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password','phone','gender','dob','height','weight','daily_water_amount','active'
+        'name', 'email', 'password','phone','gender','dob','height','weight','daily_water_amount','activity_level','active'
     ];
 
     /**
@@ -51,5 +51,10 @@ class User extends Authenticatable implements JWTSubject
     public function waterIngestion()
     {
         return $this->hasMany(WaterIngestion::class);
+    }
+
+    public function waterIngestionToday()
+    {
+        return $this->hasMany(WaterIngestion::class)->whereDate('created_at', now()->toDateString());
     }
 }
