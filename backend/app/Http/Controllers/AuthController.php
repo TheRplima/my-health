@@ -32,8 +32,6 @@ class AuthController extends Controller
         return response()->json([
             'status' => 'success',
             'user' => $user,
-            'waterIngestionsToday' => $user->waterIngestionToday,
-            'waterIngestionsTodayAmount' => $user->waterIngestionToday->sum('amount'),
             'authorisation' => [
                 'token' => $token,
                 'type' => 'bearer',
