@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import useToken from '../App/useToken'
 import useUserProfileData from '../App/useUserProfileData'
 import Header from './Header'

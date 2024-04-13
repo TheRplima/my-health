@@ -10,8 +10,8 @@ import {BrowserRouter, Routes,Route } from "react-router-dom"
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
-  const { token, setToken } = useToken()
-  const { userProfileData, setUserProfileData } = useUserProfileData()
+  const { setToken } = useToken()
+  const { setUserProfileData } = useUserProfileData()
 
   return (
     <div className="App">

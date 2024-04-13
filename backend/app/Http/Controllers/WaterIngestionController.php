@@ -80,7 +80,7 @@ class WaterIngestionController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Water Ingestion deleted successfully',
-            'waterIngestion' => $waterIngestion,
+            'water_ingestion' => $waterIngestion,
         ]);
     }
 
@@ -102,8 +102,8 @@ class WaterIngestionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'totalAmount' => $totalAmount,
-            'waterIngestions' => $waterIngestions,
+            'total_amount' => $totalAmount,
+            'water_ingestion_list' => $waterIngestions,
         ]);
     }
 }
