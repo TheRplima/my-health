@@ -3,7 +3,7 @@ import useToken from '../App/useToken'
 import useUserProfileData from '../App/useUserProfileData'
 import Header from './Header'
 import Login from '../Login/Login'
-import ConsumoAguaHoje from './ConsumoAguaHoje'
+import CardConsumoAguaHoje from './CardConsumoAguaHoje'
 
 import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
@@ -11,6 +11,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import ListGroup from 'react-bootstrap/ListGroup';
+import CardControlePeso from './CardControlePeso'
 
 function formatPhoneNumber(input) {
     if (!input) return input;
@@ -84,24 +85,15 @@ const UserProfile = () => {
                                 </Row>
                                 <Row>
                                     <Col md={6}>
-                                        <ConsumoAguaHoje token={token} />
+                                        <CardConsumoAguaHoje token={token} />
                                     </Col>
                                     <Col md={6}>
-                                        <Card className="mb-3">
-                                            <Card.Body>
-                                                <Card.Title>Card Title</Card.Title>
-                                                <Card.Subtitle className="mb-2 text-muted">Card Subtitle</Card.Subtitle>
-                                                <Card.Text>{userProfileData?.name}</Card.Text>
-                                                <Card.Text>{userProfileData?.email}</Card.Text>
-                                                <Card.Link href="#">Card Link</Card.Link>
-                                                <Card.Link href="#">Another Link</Card.Link>
-                                            </Card.Body>
-                                        </Card>
+                                        <CardControlePeso token={token} />
                                     </Col>
                                 </Row>
                             </Col>
                         </Row>
-                    </Container>
+                    </Container>    
                 </div>
             </div>
         </>

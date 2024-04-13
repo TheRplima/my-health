@@ -1,6 +1,8 @@
 import React, {useEffect} from 'react'
 import useToken from '../App/useToken'
 import useUserProfileData from '../App/useUserProfileData';
+import useWeightControlData from '../App/useWeightControlData';
+import useWaterIngestionData from '../App/useWaterIngestionData';
 
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -11,19 +13,25 @@ import Button from 'react-bootstrap/Button';
 const Header = () => {
     const { token, getToken, setToken } = useToken()
     const { userProfileData, getUserProfileData, setUserProfileData } = useUserProfileData()
+    const { setWeightControlData } = useWeightControlData()
+    const { setWaterIngestionData } = useWaterIngestionData()
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        sessionStorage.clear();
         setToken(null)
         setUserProfileData(null)
+        setWeightControlData(null)
+        setWaterIngestionData(null)
         window.location.reload();
     }
 
     useEffect(() => {
-        if (!token) {
+        if (token === undefined && !token) {
             setToken(getToken());
         }
-        if (!userProfileData) {
+        if (userProfileData === undefined && !userProfileData) {
             setUserProfileData(getUserProfileData());
         }
     

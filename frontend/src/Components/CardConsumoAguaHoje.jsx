@@ -22,7 +22,7 @@ async function RegisterWaterIngestion(amount, token) {
     });
 }
 
-const ConsumoAguaHoje = (token) => {
+const CardConsumoAguaHoje = (token) => {
     const [amount, setAmount] = useState(0);
     const { userProfileData } = useUserProfileData()
     const { waterIngestionData, setWaterIngestionData, totalWaterIngestion } = useWaterIngestionData()
@@ -81,4 +81,4 @@ const ConsumoAguaHoje = (token) => {
     )
 }
 
-export default ConsumoAguaHoje
+export default CardConsumoAguaHoje

@@ -15,15 +15,18 @@ async function getWaterIngestion(token) {
 const useWaterIngestionData = () => {
   const handleGetWaterIngestion = async (e) => {
     const tokenString = sessionStorage.getItem('token')
-    const token = JSON.parse(tokenString)
-    const ret = await getWaterIngestion(token.token)
+    if (tokenString !== null && tokenString !== undefined) {
+      const token = JSON.parse(tokenString)
+      const ret = await getWaterIngestion(token.token)
+      sessionStorage.setItem('water_ingestion_list', JSON.stringify(ret.water_ingestion_list))
+      sessionStorage.setItem('water_ingestion_total_amount', JSON.stringify(ret.total_amount))
+      setWaterIngestionData(ret.water_ingestion_list)
+      setTotalWaterIngestion(ret.total_amount)
+  
+      return ret.water_ingestion_list
+    }
 
-    sessionStorage.setItem('water_ingestion_list', JSON.stringify(ret.water_ingestion_list))
-    sessionStorage.setItem('water_ingestion_total_amount', JSON.stringify(ret.total_amount))
-    setWaterIngestionData(ret.water_ingestion_list)
-    setTotalWaterIngestion(ret.total_amount)
-
-    return ret.water_ingestion_list
+    return []
   }
 
   const getWaterIngestionData = () => {
