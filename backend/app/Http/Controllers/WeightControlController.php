@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\WeightControl;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class WeightControlController extends Controller
 {
@@ -21,7 +22,8 @@ class WeightControlController extends Controller
     {
         $request->validate([
             'initial_date' => ['nullable', 'date', 'required_with:final_date', 'filled'],
-            'final_date' => ['nullable', 'date', 'required_with:initial_date', 'filled', 'after_or_equal:initial_date']
+            'final_date' => ['nullable', 'date', 'required_with:initial_date', 'filled', 'after_or_equal:initial_date'],
+            'max' => 'nullable|integer'
         ]);
 
         if ($request->has('initial_date') && $request->has('final_date')) {
@@ -32,12 +34,18 @@ class WeightControlController extends Controller
                 ->whereDate('created_at', "<=", $finalDate)
                 ->get();
         }else{
-            $weightControls = auth()->user()->weightControl()->get();
+            if ($request->has('max')) {
+                $user = auth()->user();
+                $weightControls = WeightControl::where('user_id',$user->id)->orderBy('created_at','desc')->take($request->get('max'));
+                $weightControls = array_reverse($weightControls->get()->toArray());
+            }else{
+                $weightControls = auth()->user()->weightControl()->get();
+            }
         }
 
         return response()->json([
             'status' => 'success',
-            'weight_control' => $weightControls,
+            'weight_control_list' => $weightControls,
         ]);
     }
 
@@ -56,10 +64,14 @@ class WeightControlController extends Controller
             'weight' => $request->weight,
         ]);
 
+        $user = Auth::user();
+        $user->weight = $request->weight;
+        $user->save();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Weight registered successfully',
-            'weightControl' => $weightControl,
+            'weight_control' => $weightControl,
         ]);
     }
 
@@ -74,7 +86,7 @@ class WeightControlController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Weight register deleted successfully',
-            'weightControl' => $weightControl,
+            'weight_control' => $weightControl,
         ]);
     }
 }

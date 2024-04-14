@@ -7,7 +7,8 @@ async function RegisterUser(data) {
     return fetch('http://localhost:8000/api/register', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify(data)
     }).then(data => data.json()).catch((error) => {

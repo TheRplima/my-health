@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('gender',['M','F'])->nullable();
             $table->date('dob')->nullable();
             $table->integer('height')->nullable();
-            $table->integer('weight')->nullable();
+            $table->float('weight')->nullable();
             $table->integer('daily_water_amount')->nullable();
             $table->enum('activity_level',[0.2,0.375,0.55,0.725,0.9])->nullable();
             $table->boolean('active')->default(1);

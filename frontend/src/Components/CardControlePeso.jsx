@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import useUserProfileData from '../App/useUserProfileData'
 import useWeightControlData from '../App/useWeightControlData'
 import RegisterWeightControlModal from './RegisterWeightControlModal';
+import useToken from '../App/useToken';
 
 import Card from 'react-bootstrap/Card';
 import { FiTrash } from 'react-icons/fi';
@@ -9,10 +10,11 @@ import Button from 'react-bootstrap/esm/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
 async function RegisterWeightControl(weight, token) {
-    return fetch('http://localhost:8000/api/water-ingestion', {
+    return fetch('http://localhost:8000/api/weight-control', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'Authorization': 'Bearer ' + token,
         },
         body: JSON.stringify({ weight })
@@ -21,14 +23,20 @@ async function RegisterWeightControl(weight, token) {
     });
 }
 
-const CardControlePeso = (token) => {
-    const [weight, setWeight] = useState(0);
-    const { userProfileData } = useUserProfileData()
+const CardControlePeso = () => {
+    const { userProfileData, refreshUserData } = useUserProfileData()
+    const [weight, setWeight] = useState(userProfileData.weight);
     const { weightControlData, setWeightControlData } = useWeightControlData()
+    const {getToken} = useToken()
 
     const handleRegisterWeightControl = async (e) => {
-        const ret = await RegisterWeightControl(weight, token.token)
-        setWeightControlData(ret.weight_control)
+        const token = getToken()
+        RegisterWeightControl(weight, token).then(data => {
+            setWeightControlData(data.weight_control)
+            refreshUserData();
+        }).catch((error) => {
+            console.log('Error', error.message);
+        });
     }
 
     return (
@@ -40,8 +48,8 @@ const CardControlePeso = (token) => {
                 </Card.Header>
                 {(weightControlData && Array.isArray(weightControlData)) ? (
                     <Card.Body>
-                        <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {userProfileData.weight} Kg</Card.Subtitle>
-                        <Card.Subtitle className="mb-3 text-muted"><strong>Progressão nos últimos 10 dias</strong></Card.Subtitle>
+                        <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {weight}  Kg</Card.Subtitle>                        
+                        <Card.Subtitle className="mb-3 text-muted"><strong>Últimos 5 registros</strong></Card.Subtitle>
                         <table className="table table-hover">
                             <thead>
                                 <tr>
@@ -54,7 +62,7 @@ const CardControlePeso = (token) => {
                                 {weightControlData.map((weightControl, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td className='text-center'>{new Date(weightControl.created_at).toLocaleTimeString('pt-BR')}</td>
+                                            <td className='text-center'>{new Date(weightControl.created_at).toLocaleDateString('pt-BR')}</td>
                                             <td className='text-center'>{weightControl.weight} Kg</td>
                                             <td className='text-center'>
                                                 <Button variant='danger' title={'Remover registro'}><FiTrash /></Button>

@@ -5,6 +5,7 @@ async function getWaterIngestion(token) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       'Authorization': 'Bearer ' + token,
     }
   }).then(data => data.json()).catch((error) => {
@@ -18,6 +19,7 @@ const useWaterIngestionData = () => {
     if (tokenString !== null && tokenString !== undefined) {
       const token = JSON.parse(tokenString)
       const ret = await getWaterIngestion(token.token)
+
       sessionStorage.setItem('water_ingestion_list', JSON.stringify(ret.water_ingestion_list))
       sessionStorage.setItem('water_ingestion_total_amount', JSON.stringify(ret.total_amount))
       setWaterIngestionData(ret.water_ingestion_list)

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React from 'react'
 import useToken from '../App/useToken'
 import useUserProfileData from '../App/useUserProfileData';
 import useWeightControlData from '../App/useWeightControlData';
@@ -11,11 +11,11 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 
 const Header = () => {
-    const { token, getToken, setToken } = useToken()
-    const { userProfileData, getUserProfileData, setUserProfileData } = useUserProfileData()
+    const { getToken, setToken } = useToken()
+    const { setUserProfileData } = useUserProfileData()
     const { setWeightControlData } = useWeightControlData()
     const { setWaterIngestionData } = useWaterIngestionData()
-
+    const token = getToken()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,16 +26,6 @@ const Header = () => {
         setWaterIngestionData(null)
         window.location.reload();
     }
-
-    useEffect(() => {
-        if (token === undefined && !token) {
-            setToken(getToken());
-        }
-        if (userProfileData === undefined && !userProfileData) {
-            setUserProfileData(getUserProfileData());
-        }
-    
-    }, [token, getToken, setToken, userProfileData, getUserProfileData, setUserProfileData])
 
     return (
         <header className="App-header">

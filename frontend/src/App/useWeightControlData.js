@@ -1,10 +1,11 @@
 import { useState } from 'react'
 
 async function getWeightControl(token) {
-  return fetch('http://localhost:8000/api/weight-control', {
+  return fetch('http://localhost:8000/api/weight-control?max=5', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       'Authorization': 'Bearer ' + token,
     }
   }).then(data => data.json()).catch((error) => {
@@ -40,11 +41,12 @@ const useWeightControlData = () => {
     return handleGetWeightControl()
   }
 
-  const [weightControlData, setWeightControlData] = useState(getWeightControlData())
+  let [weightControlData, setWeightControlData] = useState(getWeightControlData())
 
   const saveWeightControlData = (newWeightControl) => {
     if (newWeightControl !== null && newWeightControl !== undefined) {
       weightControlData.push(newWeightControl)
+      weightControlData.shift()
       sessionStorage.setItem('weight_control_list', JSON.stringify(weightControlData))
       setWeightControlData(weightControlData)
     }

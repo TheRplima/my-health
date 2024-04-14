@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import useUserProfileData from '../App/useUserProfileData'
 import useWaterIngestionData from '../App/useWaterIngestionData'
 import RegisterWaterIngestionModal from './RegisterWaterIngestionModal';
+import useToken from '../App/useToken';
 
 import Card from 'react-bootstrap/Card';
 import ProgressBar from 'react-bootstrap/ProgressBar'
@@ -14,6 +15,7 @@ async function RegisterWaterIngestion(amount, token) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'Authorization': 'Bearer ' + token,
         },
         body: JSON.stringify({ amount })
@@ -26,13 +28,16 @@ const CardConsumoAguaHoje = (token) => {
     const [amount, setAmount] = useState(0);
     const { userProfileData } = useUserProfileData()
     const { waterIngestionData, setWaterIngestionData, totalWaterIngestion } = useWaterIngestionData()
+    const { getToken } = useToken()
 
     const handleRegisterWaterIngestion = async (e) => {
-        const ret = await RegisterWaterIngestion(amount, token.token)
-        setWaterIngestionData(ret.waterIngestion)
+        const token = getToken()
+        RegisterWaterIngestion(amount, token).then(data => {
+            setWaterIngestionData(data.waterIngestion)
+        }).catch((error) => {
+            console.log('Error', error.message);
+        });
     }
-
-
 
     return (
         <>
