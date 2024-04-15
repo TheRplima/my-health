@@ -24,10 +24,10 @@ const UserProfile = () => {
                 <div className="content">
                     <Container>
                         <Row>
-                            <Col md={4}>
+                            <Col lg={4}>
                                 <CardProfilePhoto />
                             </Col>
-                            <Col md={8}>
+                            <Col lg={8}>
                                 <Row>
                                     <Col md={6}>
                                         <CardConsumoAguaHoje />

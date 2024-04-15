@@ -13,7 +13,6 @@
 
 body {
   font: 400 14px Roboto, sans-serif;
-  background: #f0f0f5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -89,7 +88,7 @@ form textarea {
   background-color: #9b9b9b;
 }
 
-.app-container {
+.login-container {
   width: 100%;
   max-width: 1120px;
   height: 100vh;
@@ -100,7 +99,7 @@ form textarea {
   justify-content: center;
 }
 
-.app-container .content {
+.app-container .content, .login-container .content {
   width: 100%;
   padding: 96px;
   background: #f0f0f5;

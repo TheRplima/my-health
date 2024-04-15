@@ -39,7 +39,7 @@ const Login = (props) => {
     }
 
     return (
-        <div className="app-container">
+        <div className="login-container">
             <div className="content">
                 <section>
                     <h1>Login</h1>
