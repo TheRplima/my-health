@@ -85,8 +85,10 @@ class WeightControlController extends Controller
 
         $user = Auth::user();
         $latestWeight = WeightControl::where('user_id',$user->id)->orderBy('created_at','desc')->first();
-        $user->weight = $latestWeight->weight;
-        $user->save();
+        if ($latestWeight != null){
+            $user->weight = $latestWeight->weight;
+            $user->save();
+        }
 
         return response()->json([
             'status' => 'success',
