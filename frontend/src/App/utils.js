@@ -17,7 +17,6 @@ const Utils = () => {
     }
 
     const getActivityLevel = (value) => {
-        console.log(value)
         switch (value) {
             case 0.2:
                 return 'No sport/exercise';

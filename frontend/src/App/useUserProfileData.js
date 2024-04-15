@@ -15,7 +15,7 @@ async function refreshUserData(token) {
 }
 
 const useUserProfileData = () => {
-  const { token, setToken } = useToken()
+  const { getToken, setToken } = useToken()
 
   const getUserProfileData = () => {
     const userProfileDataString = sessionStorage.getItem('userprofiledata')
@@ -24,17 +24,24 @@ const useUserProfileData = () => {
   }
 
   const handleRefreshUserData = async (e) => {
-    const ret = await refreshUserData(token)
+    const token = getToken()
 
-    if (ret === null || ret === undefined || ret.message === "Unauthenticated.") {
+    if (token === null || token === undefined) {
+      alert('Sessão expirada. Faça login novamente.')
       sessionStorage.clear();
-      setToken(null)
-      setUserProfileData(null)
       window.location.reload();
     }
 
-    setToken(ret)
-    saveUserProfileData(ret);
+    refreshUserData(token).then(data => {
+    
+      setToken(data)
+      saveUserProfileData(data);
+
+      return data
+    }).catch((error) => {
+      console.log('Error', error.message);
+    });
+
   }
 
   const [userProfileData, setUserProfileData] = useState(getUserProfileData())

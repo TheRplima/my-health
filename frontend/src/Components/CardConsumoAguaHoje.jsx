@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import useUserProfileData from '../App/useUserProfileData'
 import useWaterIngestionData from '../App/useWaterIngestionData'
 import RegisterWaterIngestionModal from './RegisterWaterIngestionModal';
-import useToken from '../App/useToken';
+import { confirm } from "./ConfirmationModal";
 
 import Card from 'react-bootstrap/Card';
 import ProgressBar from 'react-bootstrap/ProgressBar'
@@ -10,33 +10,22 @@ import { FiTrash } from 'react-icons/fi';
 import Button from 'react-bootstrap/esm/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
-async function RegisterWaterIngestion(amount, token) {
-    return fetch('http://localhost:8000/api/water-ingestion', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': 'Bearer ' + token,
-        },
-        body: JSON.stringify({ amount })
-    }).then(data => data.json()).catch((error) => {
-        console.log('Error', error.message);
-    });
-}
-
 const CardConsumoAguaHoje = (token) => {
     const [amount, setAmount] = useState(0);
     const { userProfileData } = useUserProfileData()
-    const { waterIngestionData, setWaterIngestionData, totalWaterIngestion } = useWaterIngestionData()
-    const { getToken } = useToken()
+    const { waterIngestionData, setWaterIngestionData, totalWaterIngestion, deleteWaterIngestion } = useWaterIngestionData()
 
     const handleRegisterWaterIngestion = async (e) => {
-        const token = getToken()
-        RegisterWaterIngestion(amount, token).then(data => {
-            setWaterIngestionData(data.waterIngestion)
-        }).catch((error) => {
-            console.log('Error', error.message);
-        });
+        setWaterIngestionData(amount)
+    }
+
+    const handleDeleteButtonClick = (id) => {
+        confirm('Deseja realmente excluir este registro?', 'Remover registro', 'Sim', 'Não').then(
+            (response) => {
+                if (response) {
+                    deleteWaterIngestion(id)
+                }
+            })
     }
 
     return (
@@ -50,7 +39,7 @@ const CardConsumoAguaHoje = (token) => {
                     <Card.Body>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Meta diária:</strong> {userProfileData.daily_water_amount} ml</Card.Subtitle>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Total consumido hoje:</strong> {totalWaterIngestion} ml</Card.Subtitle>
-                        <ProgressBar animated now={totalWaterIngestion} max={userProfileData.daily_water_amount} label={`${(totalWaterIngestion / userProfileData.daily_water_amount) * 100}%`} />
+                        <ProgressBar animated now={totalWaterIngestion} max={userProfileData.daily_water_amount} label={`${((totalWaterIngestion / userProfileData.daily_water_amount) * 100).toFixed(2)}%`} />
                         <table className="table table-hover">
                             <thead>
                                 <tr>
@@ -66,7 +55,7 @@ const CardConsumoAguaHoje = (token) => {
                                             <td className='text-center'>{new Date(waterIngestion.created_at).toLocaleTimeString('pt-BR')}</td>
                                             <td className='text-center'>{waterIngestion.amount} ml</td>
                                             <td className='text-center'>
-                                                <Button variant='danger' title={'Remover registro'}><FiTrash /></Button>
+                                                <Button variant='danger' title={'Remover registro'} onClick={(e) => handleDeleteButtonClick(waterIngestion.id)}><FiTrash /></Button>
                                             </td>
                                         </tr>
                                     );

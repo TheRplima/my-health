@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { FiPlusCircle } from 'react-icons/fi';
@@ -22,7 +22,7 @@ export default function RegisterWaterIngestion(props) {
                     <Modal.Title>Registrar consumo de água</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <input type="number" name="amount" placeholder="Quantidade de água ingerida em ml" onChange={e => props.setAmount(e.target.value)} />
+                    <input type="number" name="amount" placeholder="Quantidade de água ingerida em ml" onChange={e => props.setAmount(e.target.value)} autoFocus={true} style={{'width':'100%'}} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="danger" onClick={handleClose}>

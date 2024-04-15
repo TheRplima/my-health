@@ -25,9 +25,9 @@ const useToken = () => {
   const saveToken = userToken => {
 
     if (userToken === null || userToken === undefined || userToken.message === 'Unauthenticated') {
-      sessionStorage.removeItem('token')
-      setToken(null)
-      return
+      alert('Sessão expirada. Faça login novamente.')
+      sessionStorage.clear();
+      window.location.reload();
     }
 
     if (typeof userToken === 'string') {
@@ -35,7 +35,7 @@ const useToken = () => {
     }
 
     sessionStorage.setItem('token', JSON.stringify(userToken.authorisation))
-    setToken(getToken())
+    setToken(userToken.authorisation.token)
   }
 
   return {

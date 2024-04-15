@@ -1,7 +1,22 @@
 import { useState } from 'react'
+import useUserProfileData from './useUserProfileData';
+import useToken from './useToken';
 
-async function getWeightControl(token) {
-  return fetch('http://localhost:8000/api/weight-control?max=5', {
+async function getWeightControl(token, max = 0, initial_date = null, final_date = null) {
+  let queryString = '';
+  if (initial_date !== null) {
+    queryString += `?initial_date=${initial_date}`
+  }
+  if (final_date !== null) {
+    queryString += queryString.length > 0 ? '&' : '?'
+    queryString += `final_date=${final_date}`
+  }
+  if (max > 0) {
+    queryString += queryString.length > 0 ? '&' : '?'
+    queryString += `max=${max}`
+  }
+
+  return fetch(process.env.REACT_APP_API_BASE_URL + '/weight-control'+queryString, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -13,48 +28,113 @@ async function getWeightControl(token) {
   });
 }
 
-const useWeightControlData = () => {
-  const handleGetWeightControl = async (e) => {
-    const tokenString = sessionStorage.getItem('token')
-    if (tokenString !== null && tokenString !== undefined) {
-      const token = JSON.parse(tokenString)
-      const ret = await getWeightControl(token.token)
+async function registerWeightControl(weight, token) {
+  return fetch(process.env.REACT_APP_API_BASE_URL + '/weight-control', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ' + token,
+    },
+    body: JSON.stringify({ weight })
+  }).then(data => data.json()).catch((error) => {
+    console.log('Error', error.message);
+  });
+}
 
-      sessionStorage.setItem('weight_control_list', JSON.stringify(ret.weight_control_list))
-      setWeightControlData(ret.weight_control_list)
-  
-      return ret.weight_control_list
+async function deleteWeightControl(id, token) {
+  return fetch(process.env.REACT_APP_API_BASE_URL + `/weight-control/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ' + token,
+    }
+  }).then(data => data.json()).catch((error) => {
+    console.log('Error', error.message);
+  });
+}
+
+const useWeightControlData = (max = 0, initial_date = null, final_date = null) => {
+
+  const { refreshUserData } = useUserProfileData()
+  const { getToken } = useToken()
+
+  const getWeightControlData = async (max = 0, initial_date = null, final_date = null) => {
+    const token = getToken()
+    if (token === null || token === undefined) {
+      alert('Sessão expirada. Faça login novamente.')
+      sessionStorage.clear();
+      window.location.reload();
     }
 
-    return []
+    getWeightControl(token, max, initial_date, final_date).then(data => {
+      sessionStorage.setItem('weight_control_list', JSON.stringify(data.weight_control_list))
+      setWeightControlData(data.weight_control_list)
+      
+      return data.weight_control_list
+    }).catch((error) => {
+      console.log('Error', error.message);
+
+      return []
+    });
   }
 
-  const getWeightControlData = () => {
+  const handleGetWeightControl = (max = 0, initial_date = null, final_date = null) => {
     const weightControlDataString = sessionStorage.getItem('weight_control_list')
 
-    if (weightControlDataString !== null && weightControlDataString !== undefined) {
+    if (weightControlDataString !== null && weightControlDataString !== undefined && weightControlDataString !== 'undefined') {
       const weightControlData = JSON.parse(weightControlDataString)
 
       return weightControlData
     }
 
-    return handleGetWeightControl()
+    return getWeightControlData(max, initial_date, final_date)
   }
 
-  let [weightControlData, setWeightControlData] = useState(getWeightControlData())
+  const [weightControlData, setWeightControlData] = useState(handleGetWeightControl(max, initial_date, final_date))
 
-  const saveWeightControlData = (newWeightControl) => {
-    if (newWeightControl !== null && newWeightControl !== undefined) {
-      weightControlData.push(newWeightControl)
-      weightControlData.shift()
-      sessionStorage.setItem('weight_control_list', JSON.stringify(weightControlData))
-      setWeightControlData(weightControlData)
+
+  const handleRegisterWeightControl = async (weight) => {
+    const tokenString = sessionStorage.getItem('token')
+    if (tokenString === null || tokenString === undefined) {
+      alert('Sessão expirada. Faça login novamente.')
+      sessionStorage.clear();
+      window.location.reload();
     }
+
+    const token = JSON.parse(tokenString)
+    registerWeightControl(weight, token.token).then(data => {
+      getWeightControlData(max, initial_date, final_date).then(data => {
+        refreshUserData()
+      })
+    }).catch((error) => {
+      console.log('Error', error.message);
+    });
   }
   
+  const handleDeleteWeightControl = async (id) => {
+    const token = getToken()
+
+    if (token === null || token === undefined) {
+      alert('Sessão expirada. Faça login novamente.')
+      sessionStorage.clear();
+      window.location.reload();
+    }
+
+    deleteWeightControl(id, token).then(data => {
+      getWeightControlData(max, initial_date, final_date).then(data => {
+        refreshUserData()
+      })
+    }).catch((error) => {
+      console.log('Error', error.message);
+    });
+  }
+
   return {
-    getWeightControlData: getWeightControlData,
-    setWeightControlData: saveWeightControlData,
+    getWeightControlData: handleGetWeightControl,
+    setWeightControlData: handleRegisterWeightControl,
+    deleteWeightControl: handleDeleteWeightControl,
     weightControlData
   }
 }
