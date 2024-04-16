@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/static/css/main.d809570a.css",
-    "main.js": "/static/js/main.aa10f941.js",
-    "index.html": "/index.html",
-    "main.d809570a.css.map": "/static/css/main.d809570a.css.map",
-    "main.aa10f941.js.map": "/static/js/main.aa10f941.js.map"
+    "main.css": "/my-health/static/css/main.d809570a.css",
+    "main.js": "/my-health/static/js/main.6a472a77.js",
+    "index.html": "/my-health/index.html",
+    "main.d809570a.css.map": "/my-health/static/css/main.d809570a.css.map",
+    "main.6a472a77.js.map": "/my-health/static/js/main.6a472a77.js.map"
   },
   "entrypoints": [
     "static/css/main.d809570a.css",
-    "static/js/main.aa10f941.js"
+    "static/js/main.6a472a77.js"
   ]
 }
