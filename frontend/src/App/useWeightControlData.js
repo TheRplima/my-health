@@ -16,7 +16,7 @@ async function getWeightControl(token, max = 0, initial_date = null, final_date 
     queryString += `max=${max}`
   }
 
-  return fetch(process.env.REACT_APP_API_BASE_URL + '/weight-control'+queryString, {
+  return fetch(process.env.REACT_APP_API_BASE_URL + 'api/weight-control'+queryString, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ async function getWeightControl(token, max = 0, initial_date = null, final_date 
 }
 
 async function registerWeightControl(weight, token) {
-  return fetch(process.env.REACT_APP_API_BASE_URL + '/weight-control', {
+  return fetch(process.env.REACT_APP_API_BASE_URL + 'api/weight-control', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ async function registerWeightControl(weight, token) {
 }
 
 async function deleteWeightControl(id, token) {
-  return fetch(process.env.REACT_APP_API_BASE_URL + `/weight-control/${id}`, {
+  return fetch(process.env.REACT_APP_API_BASE_URL + `api/weight-control/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

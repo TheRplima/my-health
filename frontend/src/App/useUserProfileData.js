@@ -2,7 +2,7 @@ import { useState } from 'react'
 import useToken from './useToken';
 
 async function refreshUserData(token) {
-  return fetch('http://localhost:8000/api/refresh', {
+  return fetch(process.env.REACT_APP_API_BASE_URL +'api/refresh', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

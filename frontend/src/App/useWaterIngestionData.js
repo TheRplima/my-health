@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 async function getWaterIngestion(token) {
-  return fetch(process.env.REACT_APP_API_BASE_URL + '/water-ingestion/get-water-ingestion-by-day', {
+  return fetch(process.env.REACT_APP_API_BASE_URL + 'api/water-ingestion/get-water-ingestion-by-day', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -14,7 +14,7 @@ async function getWaterIngestion(token) {
 }
 
 async function registerWaterIngestion(amount, token) {
-  return fetch(process.env.REACT_APP_API_BASE_URL + '/water-ingestion', {
+  return fetch(process.env.REACT_APP_API_BASE_URL + 'api/water-ingestion', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ async function registerWaterIngestion(amount, token) {
 }
 
 async function deleteWaterIngestion(id, token) {
-  return fetch(process.env.REACT_APP_API_BASE_URL + `/water-ingestion/${id}`, {
+  return fetch(process.env.REACT_APP_API_BASE_URL + `api/water-ingestion/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
