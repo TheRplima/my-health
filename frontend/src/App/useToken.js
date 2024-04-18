@@ -14,10 +14,7 @@ const useToken = () => {
         return userToken.token
       }
     }
-    
-    alert('Sessão expirada. Faça login novamente.')
-    sessionStorage.clear();
-    window.location.reload();
+
     return null
   }
 
@@ -28,7 +25,7 @@ const useToken = () => {
     if (userToken === null || userToken === undefined || userToken.message === 'Unauthenticated') {
       alert('Sessão expirada. Faça login novamente.')
       sessionStorage.clear();
-      window.location.reload();
+      return;
     }
 
     if (typeof userToken === 'string') {

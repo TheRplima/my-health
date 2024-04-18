@@ -12,7 +12,7 @@ import { useEffect } from 'react';
 
 const CardControlePeso = () => {
     const { weightControlData, setWeightControlData, deleteWeightControl } = useWeightControlData(5)
-    const { userProfileData, getUserProfileData } = useUserProfileData()
+    const { getUserProfileData } = useUserProfileData()
     const [weight, setWeight] = useState(0);
     const [userWeight, setUserWeight] = useState(getUserProfileData().weight);
 

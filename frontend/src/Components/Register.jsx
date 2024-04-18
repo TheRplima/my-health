@@ -4,7 +4,6 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import PropTypes from 'prop-types'
 
 async function RegisterUser(data) {
     return fetch(process.env.REACT_APP_API_BASE_URL +'api/register', {
@@ -94,11 +93,6 @@ const Register = (props) => {
             </div>
         </div>
     );
-}
-
-Register.propTypes = {
-    setToken: PropTypes.func.isRequired,
-    setUserProfileData: PropTypes.func.isRequired
 }
 
 export default Register

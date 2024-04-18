@@ -4,7 +4,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { Link } from 'react-router-dom';
 import { FiLogIn } from 'react-icons/fi';
-import PropTypes from 'prop-types'
+
+import useToken from '../App/useToken'
+import useUserProfileData from '../App/useUserProfileData';
 
 async function LoginUser(credentials) {
     return fetch(process.env.REACT_APP_API_BASE_URL +'api/login', {
@@ -19,10 +21,12 @@ async function LoginUser(credentials) {
     });
 }
 
-const Login = (props) => {
+const Login = () => {
     const [email, setEmail] = useState()
     const [password, setPassword] = useState()
-
+    const { setToken } = useToken()
+    const { setUserProfileData } = useUserProfileData()
+    
     const handleChangeEmail = (event) => {
         setEmail(event.target.value);
     };
@@ -33,12 +37,16 @@ const Login = (props) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const ret = await LoginUser({
+        LoginUser({
             email,
             password
-        })
-        props.setToken(ret)
-        props.setUserProfileData(ret)
+        }).then(data => {
+            setToken(data)
+            setUserProfileData(data)
+            window.location.reload();
+        }).catch((error) => {
+            console.log('Error', error.message);
+        });
     }
 
     return (
@@ -79,11 +87,6 @@ const Login = (props) => {
             </div>
         </div>
     )
-}
-
-Login.propTypes = {
-    setToken: PropTypes.func.isRequired,
-    setUserProfileData: PropTypes.func.isRequired
 }
 
 export default Login

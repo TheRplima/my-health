@@ -1,8 +1,5 @@
 import React from 'react'
-import useToken from '../App/useToken'
-import useUserProfileData from '../App/useUserProfileData'
 import Header from './Header'
-import Login from '../Login/Login'
 import CardConsumoAguaHoje from './CardConsumoAguaHoje'
 
 import Container from 'react-bootstrap/Container';
@@ -12,10 +9,6 @@ import CardControlePeso from './CardControlePeso'
 import CardProfilePhoto from './CardProfilePhoto'
 
 const UserProfile = () => {
-    const { token, setToken } = useToken()
-    const { setUserProfileData } = useUserProfileData()
-
-    if (!token) return (<Login setToken={setToken} setUserProfileData={setUserProfileData} />);
 
     return (
         <>
