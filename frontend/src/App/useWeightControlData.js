@@ -62,11 +62,6 @@ const useWeightControlData = (max = 0, initial_date = null, final_date = null) =
 
   const getWeightControlData = async (max = 0, initial_date = null, final_date = null) => {
     const token = getToken()
-    if (token === null || token === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
 
     getWeightControl(token, max, initial_date, final_date).then(data => {
       sessionStorage.setItem('weight_control_list', JSON.stringify(data.weight_control_list))
@@ -96,15 +91,9 @@ const useWeightControlData = (max = 0, initial_date = null, final_date = null) =
 
 
   const handleRegisterWeightControl = async (weight) => {
-    const tokenString = sessionStorage.getItem('token')
-    if (tokenString === null || tokenString === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
+    const token = getToken()
 
-    const token = JSON.parse(tokenString)
-    registerWeightControl(weight, token.token).then(data => {
+    registerWeightControl(weight, token).then(data => {
       getWeightControlData(max, initial_date, final_date).then(data => {
         refreshUserData()
       })
@@ -115,12 +104,6 @@ const useWeightControlData = (max = 0, initial_date = null, final_date = null) =
   
   const handleDeleteWeightControl = async (id) => {
     const token = getToken()
-
-    if (token === null || token === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
 
     deleteWeightControl(id, token).then(data => {
       getWeightControlData(max, initial_date, final_date).then(data => {

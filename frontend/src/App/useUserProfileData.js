@@ -25,13 +25,7 @@ const useUserProfileData = () => {
 
   const handleRefreshUserData = async (e) => {
     const token = getToken()
-
-    if (token === null || token === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
-
+    
     refreshUserData(token).then(data => {
     
       setToken(data)

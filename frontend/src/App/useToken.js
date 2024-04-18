@@ -10,13 +10,14 @@ const useToken = () => {
       const userToken = JSON.parse(tokenString)
       const decodedToken = jwtDecode(userToken.token);
 
-      if (decodedToken.exp * 1000 < currentDate.getTime()) {
-        return null;
+      if (decodedToken.exp * 1000 > currentDate.getTime()) {
+        return userToken.token
       }
-
-      return userToken.token
     }
-
+    
+    alert('Sessão expirada. Faça login novamente.')
+    sessionStorage.clear();
+    window.location.reload();
     return null
   }
 

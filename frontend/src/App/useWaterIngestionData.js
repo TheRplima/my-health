@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import useToken from './useToken';
 
 async function getWaterIngestion(token) {
   return fetch(process.env.REACT_APP_API_BASE_URL + 'api/water-ingestion/get-water-ingestion-by-day', {
@@ -41,17 +42,13 @@ async function deleteWaterIngestion(id, token) {
 }
 
 const useWaterIngestionData = () => {
-  const handleGetWaterIngestion = async (e) => {
-    const tokenString = sessionStorage.getItem('token')
-    if (tokenString === null || tokenString === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
+  const { getToken } = useToken()
 
-    const token = JSON.parse(tokenString)
+  const handleGetWaterIngestion = async (e) => {
+    const token = getToken()
+
     let ret = []
-    getWaterIngestion(token.token).then(data => {
+    getWaterIngestion(token).then(data => {
       ret = data.water_ingestion_list
       sessionStorage.setItem('water_ingestion_list', JSON.stringify(data.water_ingestion_list))
       sessionStorage.setItem('water_ingestion_total_amount', JSON.stringify(data.total_amount))
@@ -91,15 +88,9 @@ const useWaterIngestionData = () => {
   const [totalWaterIngestion, setTotalWaterIngestion] = useState(getTotalWaterIngestion())
 
   const handleRegisterWaterIngestion = async (amount) => {
-    const tokenString = sessionStorage.getItem('token')
-    if (tokenString === null || tokenString === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
+    const token = getToken()
 
-    const token = JSON.parse(tokenString)
-    registerWaterIngestion(amount, token.token).then(data => {
+    registerWaterIngestion(amount, token).then(data => {
       const newWaterIngestion = data.water_ingestion
       waterIngestionData.push(newWaterIngestion)
       const newTotalWaterIngestion = parseInt(totalWaterIngestion) + parseInt(newWaterIngestion.amount)
@@ -113,15 +104,9 @@ const useWaterIngestionData = () => {
   }
 
   const handleDeleteWaterIngestion = async (id) => {
-    const tokenString = sessionStorage.getItem('token')
-    if (tokenString === null || tokenString === undefined) {
-      alert('Sessão expirada. Faça login novamente.')
-      sessionStorage.clear();
-      window.location.reload();
-    }
+    const token = getToken()
 
-    const token = JSON.parse(tokenString)
-    deleteWaterIngestion(id, token.token).then(data => {
+    deleteWaterIngestion(id, token).then(data => {
       const deleltedWaterIngestion = data.water_ingestion
       const index = waterIngestionData.findIndex(waterIngestion => waterIngestion.id === deleltedWaterIngestion.id)
       waterIngestionData.splice(index, 1)
