@@ -1,4 +1,7 @@
 import React, { useState } from 'react'
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import { Link } from 'react-router-dom';
 import { FiLogIn } from 'react-icons/fi';
 import PropTypes from 'prop-types'
@@ -22,11 +25,11 @@ const Login = (props) => {
 
     const handleChangeEmail = (event) => {
         setEmail(event.target.value);
-      };
+    };
 
     const handleChangePassword = (event) => {
         setPassword(event.target.value);
-      };
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,34 +44,38 @@ const Login = (props) => {
     return (
         <div className="login-container">
             <div className="content">
-                <section>
-                    <h1>Login</h1>
-                    <p>Preencha seus dados e faça login no sistema para ter acesso a todas as funcionalidades.</p>
+                <Container>
+                    <Row>
+                        <Col lg={6}>
+                            <h1>Login</h1>
+                            <p>Preencha seus dados e faça login no sistema para ter acesso a todas as funcionalidades.</p>
 
-                    <Link className="back-link" to="/register">
-                        <FiLogIn size={20} color="#3498db" />
-                        Não tenho cadastro
-                    </Link>
-                </section>
-                <section className="form">
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            placeholder="Seu e-mail"
-                            value={email !== undefined ? email : ''}
-                            required
-                            onChange={handleChangeEmail}
-                        />
-                        <input
-                            placeholder="Sua Senha"
-                            type="password"
-                            value={password !== undefined ? password : ''}
-                            required
-                            onChange={handleChangePassword}
-                        />
+                            <Link className="back-link mb-5" to="/register">
+                                <FiLogIn size={20} color="#3498db" />
+                                Não tenho cadastro
+                            </Link>
+                        </Col>
+                        <Col lg={6}>
+                            <form onSubmit={handleSubmit}>
+                                <input
+                                    placeholder="Seu e-mail"
+                                    value={email !== undefined ? email : ''}
+                                    required
+                                    onChange={handleChangeEmail}
+                                />
+                                <input
+                                    placeholder="Sua Senha"
+                                    type="password"
+                                    value={password !== undefined ? password : ''}
+                                    required
+                                    onChange={handleChangePassword}
+                                />
 
-                        <button className="button" type="submit">Entrar</button>
-                    </form>
-                </section>
+                                <button className="button" type="submit">Entrar</button>
+                            </form>
+                        </Col>
+                    </Row>
+                </Container>
             </div>
         </div>
     )
