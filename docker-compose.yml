@@ -1,0 +1,53 @@
+services:
+  myhealth_backend:
+    container_name: myhealth_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: 'php artisan serve --host=0.0.0.0'
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    environment:
+      - APP_NAME=MyHealth
+      - APP_ENV=local
+      - "APP_KEY=base64:L56N+2uvF4o4/Os/91HKL2ZwL5eqTKUfDiKXBai67kw="
+      - APP_DEBUG=true
+      - APP_URL=http://192.168.0.251:8000/
+      - APP_PORT=8000
+      - LOG_CHANNEL=stack
+      - LOG_DEPRECATIONS_CHANNEL=null
+      - LOG_LEVEL=debug
+      - DB_CONNECTION=mysql
+      - DB_HOST=192.168.0.251
+      - DB_PORT=3306
+      - DB_DATABASE=myhealth
+      - DB_USERNAME=rodrigo
+      - "DB_PASSWORD=Rp!25051979"
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
+      - MAIL_USERNAME=null
+      - MAIL_PASSWORD=null
+      - MAIL_ENCRYPTION=null
+      - "MAIL_FROM_ADDRESS=hello@example.com"
+      - "MAIL_FROM_NAME=${APP_NAME}"
+  mailpit:
+    image: axllent/mailpit
+    container_name: MailPit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - laravel-exa
+      
+  myhealth_frontend:
+    container_name: myhealth_frontend
+    build: ./frontend
+    ports:
+        - "3000:80"
+
+networks:
+  laravel-exa:
+    driver: bridge
