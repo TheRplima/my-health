@@ -20,10 +20,10 @@ const Header = () => {
         <header className="App-header">
             <Navbar expand="lg" fixed="top" className="bg-body-tertiary">
                 <Container>
-                    <Navbar.Brand href="#home">My Health</Navbar.Brand>
+                    <Navbar.Brand href="/home">My Health</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
+                        <Nav className="justify-content-end flex-grow-1 pe-3">
                             <Nav.Link href="#home">Home</Nav.Link>
                             <Nav.Link href="#link">Link</Nav.Link>
                             <NavDropdown title="Dropdown" id="basic-nav-dropdown">
@@ -39,7 +39,7 @@ const Header = () => {
                             </NavDropdown>
                         </Nav>
                     </Navbar.Collapse>
-                    {cookies.token ? (<Button variant="primary" onClick={handleSubmit}>Logout</Button>) : null}
+                    {cookies.token ? (<Button variant="primary" className="d-flex" onClick={handleSubmit}>Logout</Button>) : null}
                 </Container>
             </Navbar>
         </header>
