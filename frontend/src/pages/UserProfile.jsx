@@ -1,18 +1,18 @@
 import React from 'react'
-import Header from './Header'
-import CardConsumoAguaHoje from './CardConsumoAguaHoje'
+
+import CardProfilePhoto from '../components/CardProfilePhoto'
+import CardConsumoAguaHoje from '../components/CardConsumoAguaHoje'
+import CardControlePeso from '../components/CardControlePeso'
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import CardControlePeso from './CardControlePeso'
-import CardProfilePhoto from './CardProfilePhoto'
+
 
 const UserProfile = () => {
 
     return (
         <>
-            <Header />
             <div className="app-container">
                 <div className="content">
                     <Container>

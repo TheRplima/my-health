@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
-import useUserProfileData from '../App/useUserProfileData'
-import useWeightControlData from '../App/useWeightControlData'
+import React, { useState, useEffect } from 'react'
+
+import { useAuth } from "../hooks/auth";
+
+import useWeightControlData from '../services/useWeightControlData'
 import RegisterWeightControlModal from './RegisterWeightControlModal';
 import { confirm } from "./ConfirmationModal";
 
@@ -8,13 +10,13 @@ import Card from 'react-bootstrap/Card';
 import { FiTrash } from 'react-icons/fi';
 import Button from 'react-bootstrap/esm/Button';
 import Spinner from 'react-bootstrap/Spinner';
-import { useEffect } from 'react';
 
 const CardControlePeso = () => {
-    const { weightControlData, setWeightControlData, deleteWeightControl } = useWeightControlData(5)
-    const { getUserProfileData } = useUserProfileData()
     const [weight, setWeight] = useState(0);
-    const [userWeight, setUserWeight] = useState(getUserProfileData().weight);
+    const [weightControls, setWeightControls] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const { cookies } = useAuth();
+    const { setWeightControlData, deleteWeightControl } = useWeightControlData(5)
 
     const handleRegisterWeightControl = async (e) => {
         setWeightControlData(weight)
@@ -30,9 +32,22 @@ const CardControlePeso = () => {
     }
 
     useEffect(() => {
-        setUserWeight(getUserProfileData().weight)
-    }
-    , [userWeight,getUserProfileData])
+        async function loadStorageData() {
+            const storageWeightControl = cookies.weight_controls;
+
+            if (storageWeightControl) {
+                setWeightControls(storageWeightControl);
+                setLoading(false);
+            }
+        }
+
+        loadStorageData();
+
+        return () => {
+            setWeightControls(null);
+            setLoading(true);
+        }
+    }, [cookies.weight_controls]);
 
     return (
         <>
@@ -41,9 +56,9 @@ const CardControlePeso = () => {
                     <Card.Title>Controle de Peso</Card.Title>
                     <RegisterWeightControlModal handleRegisterWeightControl={handleRegisterWeightControl} setWeight={setWeight} />
                 </Card.Header>
-                {(weightControlData && Array.isArray(weightControlData)) ? (
+                {(!loading) ? (
                     <Card.Body>
-                        <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {userWeight}  Kg</Card.Subtitle>                        
+                        <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {weightControls[weightControls.length-1].weight}  Kg</Card.Subtitle>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Últimos 5 registros</strong></Card.Subtitle>
                         <table className="table table-hover">
                             <thead>
@@ -54,8 +69,8 @@ const CardControlePeso = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {weightControlData.map((weightControl, index) => {
-                                    return (
+                                {weightControls.length > 0 ? (
+                                    weightControls.map((weightControl, index) => (
                                         <tr key={index}>
                                             <td className='text-center'>{new Date(weightControl.created_at).toLocaleDateString('pt-BR')}</td>
                                             <td className='text-center'>{weightControl.weight} Kg</td>
@@ -63,8 +78,14 @@ const CardControlePeso = () => {
                                                 <Button variant='danger' title={'Remover registro'} onClick={(e) => handleDeleteButtonClick(weightControl.id)}><FiTrash /></Button>
                                             </td>
                                         </tr>
-                                    );
-                                })}
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="3" className='text-center'>
+                                            <Card.Text>Nenhum registro encontrado</Card.Text>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </Card.Body>

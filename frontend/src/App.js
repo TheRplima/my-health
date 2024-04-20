@@ -1,25 +1,26 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route } from "react-router-dom"
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import { ProtectRoutes } from './hooks/protectRoutes';
+import Header from './components/Header';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Home from './pages/Home';
+import UserProfile from './pages/UserProfile';
 
-import UserProfile from './Components/UserProfile'
-import Register from './Components/Register'
-import PrivateRoute from './Components/PrivateRoute';
-
-const App = () => {
-
+export default function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route element={<PrivateRoute />}>
-            <Route path="/UserProfile" element={<UserProfile />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <>
+      <Header />
+      <Routes>
+        <Route path='/' element={<Navigate to='home' exact />} />
+        <Route path='/home' element={<Home />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+
+        <Route element={<ProtectRoutes />}>
+          <Route path='/profile' element={<UserProfile />} />
+        </Route>
+      </Routes>
+    </>
   )
 }
-
-export default App

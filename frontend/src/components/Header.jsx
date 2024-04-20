@@ -1,5 +1,5 @@
 import React from 'react'
-import useToken from '../App/useToken'
+import { useAuth } from "../hooks/auth";
 
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -8,13 +8,12 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 
 const Header = () => {
-    const { getToken } = useToken()
-    const token = getToken()
+
+    const { logout, cookies } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        sessionStorage.clear();
-        window.location.reload();
+        logout();
     }
 
     return (
@@ -40,7 +39,7 @@ const Header = () => {
                             </NavDropdown>
                         </Nav>
                     </Navbar.Collapse>
-                    {token ? (<Button variant="primary" onClick={handleSubmit}>Logout</Button>) : null}
+                    {cookies.token ? (<Button variant="primary" onClick={handleSubmit}>Logout</Button>) : null}
                 </Container>
             </Navbar>
         </header>

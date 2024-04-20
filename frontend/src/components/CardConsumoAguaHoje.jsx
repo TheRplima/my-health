@@ -1,19 +1,25 @@
-import React, { useState } from 'react'
-import useUserProfileData from '../App/useUserProfileData'
-import useWaterIngestionData from '../App/useWaterIngestionData'
+import React, { useState, useEffect } from 'react'
+
+import { useAuth } from "../hooks/auth";
+
+import useWaterIngestionData from '../services/useWaterIngestionData'
 import RegisterWaterIngestionModal from './RegisterWaterIngestionModal';
 import { confirm } from "./ConfirmationModal";
 
 import Card from 'react-bootstrap/Card';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import { FiTrash } from 'react-icons/fi';
-import Button from 'react-bootstrap/esm/Button';
+import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
-const CardConsumoAguaHoje = (token) => {
+const CardConsumoAguaHoje = () => {
     const [amount, setAmount] = useState(0);
-    const { userProfileData } = useUserProfileData()
-    const { waterIngestionData, setWaterIngestionData, totalWaterIngestion, deleteWaterIngestion } = useWaterIngestionData()
+    const [waterIngestions, setWaterIngestions] = useState(null);
+    const [waterIngestionsTotalAmount, setWaterIngestionsTotalAmount] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const { cookies } = useAuth();
+    const userProfileData = cookies.user
+    const { setWaterIngestionData, deleteWaterIngestion } = useWaterIngestionData()
 
     const handleRegisterWaterIngestion = async (e) => {
         setWaterIngestionData(amount)
@@ -28,6 +34,27 @@ const CardConsumoAguaHoje = (token) => {
             })
     }
 
+    useEffect(() => {
+        async function loadStorageData() {
+            const storageWaterIngestions = cookies.water_ingestions;
+
+            if (storageWaterIngestions) {
+                setWaterIngestions(storageWaterIngestions.list);
+                setWaterIngestionsTotalAmount(storageWaterIngestions.total_amount);
+                setLoading(false);
+            }
+        }
+
+        loadStorageData();
+
+        return () => {
+            setWaterIngestions(null);
+            setWaterIngestionsTotalAmount(null);
+            setLoading(true);
+        }
+    }, [cookies.water_ingestions]);
+
+
     return (
         <>
             <Card className="mb-3">
@@ -35,11 +62,11 @@ const CardConsumoAguaHoje = (token) => {
                     <Card.Title>Controle de Água</Card.Title>
                     <RegisterWaterIngestionModal handleRegisterWaterIngestion={handleRegisterWaterIngestion} setAmount={setAmount} />
                 </Card.Header>
-                {(waterIngestionData && Array.isArray(waterIngestionData)) ? (
+                {(!loading) ? (
                     <Card.Body>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Meta diária:</strong> {userProfileData.daily_water_amount} ml</Card.Subtitle>
-                        <Card.Subtitle className="mb-3 text-muted"><strong>Total consumido hoje:</strong> {totalWaterIngestion} ml</Card.Subtitle>
-                        <ProgressBar animated now={totalWaterIngestion} max={userProfileData.daily_water_amount} label={`${((totalWaterIngestion / userProfileData.daily_water_amount) * 100).toFixed(2)}%`} />
+                        <Card.Subtitle className="mb-3 text-muted"><strong>Total consumido hoje:</strong> {waterIngestionsTotalAmount} ml</Card.Subtitle>
+                        <ProgressBar animated now={waterIngestionsTotalAmount} max={userProfileData.daily_water_amount} label={`${((waterIngestionsTotalAmount / userProfileData.daily_water_amount) * 100).toFixed(2)}%`} />
                         <table className="table table-hover">
                             <thead>
                                 <tr>
@@ -49,17 +76,23 @@ const CardConsumoAguaHoje = (token) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {waterIngestionData.map((waterIngestion, index) => {
-                                    return (
+                                {waterIngestions.length > 0 ? (
+                                    waterIngestions.map((waterIngestion, index) => (
                                         <tr key={index}>
                                             <td className='text-center'>{new Date(waterIngestion.created_at).toLocaleTimeString('pt-BR')}</td>
                                             <td className='text-center'>{waterIngestion.amount} ml</td>
                                             <td className='text-center'>
-                                                <Button variant='danger' title={'Remover registro'} onClick={(e) => handleDeleteButtonClick(waterIngestion.id)}><FiTrash /></Button>
+                                                <Button variant="danger" onClick={() => handleDeleteButtonClick(waterIngestion.id)}><FiTrash /></Button>
                                             </td>
                                         </tr>
-                                    );
-                                })}
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="3" className='text-center'>
+                                            <Card.Text>Nenhum registro encontrado</Card.Text>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </Card.Body>
