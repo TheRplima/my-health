@@ -67,4 +67,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(WeightControl::class)->whereDate('created_at', now()->toDateString());
     }
+
+    public function waterIntakeContainers()
+    {
+        return $this->hasMany(WaterIntakeContainers::class);
+    }
 }
