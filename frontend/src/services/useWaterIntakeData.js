@@ -25,8 +25,6 @@ async function registerWaterIntake(amount, token) {
      apiTelegram.post('sendMessage', {
       chat_id: process.env.REACT_APP_API_TELEGRAM_CHAT_ID,
       text: `/drinkWater ${amount}`
-    }).then(response => {
-      console.log('Telegram', response.data);
     }).catch(error => {
       console.log('Error', error.message);
     });
