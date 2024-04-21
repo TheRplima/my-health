@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { FiPlusCircle } from 'react-icons/fi';
@@ -22,7 +23,7 @@ export default function RegisterWeightControl(props) {
                     <Modal.Title>Registrar peso atual</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <input type="number" name="weight" placeholder="Peso atual em Kg" onChange={e => props.setWeight(e.target.value)} autoFocus={true} style={{'width':'100%'}} />
+                    <Form.Control required name="weight" placeholder="Peso atual em Kg" onChange={e => props.setWeight(e.target.value)} autoFocus={true} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="danger" onClick={handleClose}>
