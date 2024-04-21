@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(UserSeeder::class);
-        // $this->call(WaterIngestionSeeder::class);
+        // $this->call(WaterIntakeSeeder::class);
         // $this->call(WeightControlSeeder::class);
     }
 }

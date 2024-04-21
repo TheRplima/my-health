@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\WaterIngestion;
+use App\Models\WaterIntake;
 use Carbon\Carbon;
 
-class WaterIngestionController extends Controller
+class WaterIntakeController extends Controller
 {
 
     public function __construct()
@@ -27,23 +27,23 @@ class WaterIngestionController extends Controller
         if ($request->has('initial_date') && $request->has('final_date')) {
             $initialDate = Carbon::createFromFormat('Y-m-d', $request->get('initial_date'));
             $finalDate = Carbon::createFromFormat('Y-m-d', $request->get('final_date'));
-            $waterIngestions = auth()->user()->WaterIngestion()
+            $waterIntakes = auth()->user()->WaterIntake()
                 ->whereDate('created_at', ">=", $initialDate)
                 ->whereDate('created_at', "<=", $finalDate)
                 ->get();
         }else{
-            $waterIngestions = auth()->user()->WaterIngestion()->get();
+            $waterIntakes = auth()->user()->WaterIntake()->get();
         }
 
         $totalAmount = 0;
-        foreach ($waterIngestions as $waterIngestion) {
-            $totalAmount += $waterIngestion->amount;
+        foreach ($waterIntakes as $waterIntake) {
+            $totalAmount += $waterIntake->amount;
         }
 
         return response()->json([
             'status' => 'success',
             'total_amount' => $totalAmount,
-            'water_ingestion_list' => $waterIngestions,
+            'water_intake_list' => $waterIntakes,
         ]);
     }
 
@@ -57,15 +57,15 @@ class WaterIngestionController extends Controller
             'amount' => 'required|numeric'
         ]);
 
-        $waterIngestion = WaterIngestion::create([
+        $waterIntake = WaterIntake::create([
             'user_id' => auth()->user()->id ?? $request->user_id,
             'amount' => $request->amount,
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Water Ingestion created successfully',
-            'water_ingestion' => $waterIngestion,
+            'message' => 'Water Intake created successfully',
+            'water_intake' => $waterIntake,
         ]);
     }
 
@@ -74,36 +74,36 @@ class WaterIngestionController extends Controller
      */
     public function destroy($id)
     {
-        $waterIngestion = WaterIngestion::find($id);
-        $waterIngestion->delete();
+        $waterIntake = WaterIntake::find($id);
+        $waterIntake->delete();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Water Ingestion deleted successfully',
-            'water_ingestion' => $waterIngestion,
+            'message' => 'Water Intake deleted successfully',
+            'water_intake' => $waterIntake,
         ]);
     }
 
-    public function getWaterIngestionsByDay(Request $request)
+    public function getWaterIntakesByDay(Request $request)
     {
         $request->validate([
             'date' => ['nullable', 'date', 'filled']
         ]);
 
         $date = $request->has('date') ? $request->get('date') : now()->toDateString();
-        $waterIngestions = auth()->user()->WaterIngestion()
+        $waterIntakes = auth()->user()->WaterIntake()
             ->whereDate('created_at', $date)
             ->get();
 
         $totalAmount = 0;
-        foreach ($waterIngestions as $waterIngestion) {
-            $totalAmount += $waterIngestion->amount;
+        foreach ($waterIntakes as $waterIntake) {
+            $totalAmount += $waterIntake->amount;
         }
 
         return response()->json([
             'status' => 'success',
             'total_amount' => $totalAmount,
-            'water_ingestion_list' => $waterIngestions,
+            'water_intake_list' => $waterIntakes,
         ]);
     }
 }

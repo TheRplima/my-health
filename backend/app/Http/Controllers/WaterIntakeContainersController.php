@@ -37,8 +37,8 @@ class WaterIntakeContainersController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Water Ingestion container created successfully',
-            'water_ingestion' => $waterIntakeContainer,
+            'message' => 'Water Intake container created successfully',
+            'water_intake' => $waterIntakeContainer,
         ]);
     }
 
@@ -52,8 +52,8 @@ class WaterIntakeContainersController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Water Ingestion container updated successfully',
-            'water_ingestion' => $waterIntakeContainer,
+            'message' => 'Water Intake container updated successfully',
+            'water_intake' => $waterIntakeContainer,
         ]);
     }
 
@@ -67,8 +67,8 @@ class WaterIntakeContainersController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Water Ingestion container deleted successfully',
-            'water_ingestion' => $waterIntakeContainer,
+            'message' => 'Water Intake container deleted successfully',
+            'water_intake' => $waterIntakeContainer,
         ]);
     }
 }

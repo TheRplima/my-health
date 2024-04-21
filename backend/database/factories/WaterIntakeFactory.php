@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\WaterIngestion>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\WaterIntake>
  */
-class WaterIngestionFactory extends Factory
+class WaterIntakeFactory extends Factory
 {
     /**
      * Define the model's default state.

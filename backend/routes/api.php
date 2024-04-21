@@ -3,7 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WaterIngestionController;
+use App\Http\Controllers\WaterIntakeController;
 use App\Http\Controllers\WaterIntakeContainersController;
 use App\Http\Controllers\WeightControlController;
 
@@ -26,11 +26,11 @@ Route::controller(AuthController::class)->group(function () {
 
 });
 
-Route::controller(WaterIngestionController::class)->group(function () {
-    Route::get('water-ingestions', 'index');
-    Route::get('water-ingestion/get-water-ingestion-by-day', 'getWaterIngestionsByDay');
-    Route::post('water-ingestion', 'store');
-    Route::delete('water-ingestion/{id}', 'destroy');
+Route::controller(WaterIntakeController::class)->group(function () {
+    Route::get('water-intakes', 'index');
+    Route::get('water-intake/get-water-intake-by-day', 'getWaterIntakesByDay');
+    Route::post('water-intake', 'store');
+    Route::delete('water-intake/{id}', 'destroy');
 });
 
 Route::controller(WeightControlController::class)->group(function () {

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('water_ingestions', function (Blueprint $table) {
+        Schema::create('water_intakes', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id')->unsigned()->index()->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('water_ingestions');
+        Schema::dropIfExists('water_intakes');
     }
 };
