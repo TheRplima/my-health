@@ -31,7 +31,7 @@ export const UserProvider = ({ children }) => {
     };
 
     const logout = () => {
-        ['token', 'user', 'water_intakes', 'weight_controls'].forEach(obj => removeCookie(obj));
+        ['token', 'user', 'water_intakes', 'weight_controls', 'water_intake_containers'].forEach(obj => removeCookie(obj));
         navigate('/login');
     };
 

@@ -60,7 +60,7 @@ const CardConsumoAguaHoje = () => {
             <Card className="mb-3">
                 <Card.Header className='d-flex'>
                     <Card.Title>Controle de Água</Card.Title>
-                    <RegisterWaterIntakeModal handleRegisterWaterIntake={handleRegisterWaterIntake} setAmount={setAmount} />
+                    <RegisterWaterIntakeModal handleRegisterWaterIntake={handleRegisterWaterIntake} setAmount={setAmount} amount={amount} />
                 </Card.Header>
                 {(!loading) ? (
                     <Card.Body>

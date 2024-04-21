@@ -44,7 +44,7 @@ const useWaterIntakeContainerData = () => {
   const handleGetWaterIntakeContainer = async (refresh = false) => {
 
     if (cookies.water_intake_containers && refresh === false) {
-      return cookies.water_intake_containers
+      return await cookies.water_intake_containers
     }
 
     const token = cookies.token
