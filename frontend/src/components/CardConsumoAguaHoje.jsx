@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 
 import { useAuth } from "../hooks/auth";
 
-import useWaterIngestionData from '../services/useWaterIngestionData'
-import RegisterWaterIngestionModal from './RegisterWaterIngestionModal';
+import useWaterIntakeData from '../services/useWaterIntakeData'
+import RegisterWaterIntakeModal from './RegisterWaterIntakeModal';
 import { confirm } from "./ConfirmationModal";
 
 import Card from 'react-bootstrap/Card';
@@ -14,33 +14,33 @@ import Spinner from 'react-bootstrap/Spinner';
 
 const CardConsumoAguaHoje = () => {
     const [amount, setAmount] = useState(0);
-    const [waterIngestions, setWaterIngestions] = useState(null);
-    const [waterIngestionsTotalAmount, setWaterIngestionsTotalAmount] = useState(null);
+    const [waterIntakes, setWaterIntakes] = useState(null);
+    const [waterIntakesTotalAmount, setWaterIntakesTotalAmount] = useState(null);
     const [loading, setLoading] = useState(true);
     const { cookies } = useAuth();
     const userProfileData = cookies.user
-    const { setWaterIngestionData, deleteWaterIngestion } = useWaterIngestionData()
+    const { setWaterIntakeData, deleteWaterIntake } = useWaterIntakeData()
 
-    const handleRegisterWaterIngestion = async (e) => {
-        setWaterIngestionData(amount)
+    const handleRegisterWaterIntake = async (e) => {
+        setWaterIntakeData(amount)
     }
 
     const handleDeleteButtonClick = (id) => {
         confirm('Deseja realmente excluir este registro?', 'Remover registro', 'Sim', 'Não').then(
             (response) => {
                 if (response) {
-                    deleteWaterIngestion(id)
+                    deleteWaterIntake(id)
                 }
             })
     }
 
     useEffect(() => {
         async function loadStorageData() {
-            const storageWaterIngestions = cookies.water_ingestions;
+            const storageWaterIntakes = cookies.water_intakes;
 
-            if (storageWaterIngestions) {
-                setWaterIngestions(storageWaterIngestions.list);
-                setWaterIngestionsTotalAmount(storageWaterIngestions.total_amount);
+            if (storageWaterIntakes) {
+                setWaterIntakes(storageWaterIntakes.list);
+                setWaterIntakesTotalAmount(storageWaterIntakes.total_amount);
                 setLoading(false);
             }
         }
@@ -48,11 +48,11 @@ const CardConsumoAguaHoje = () => {
         loadStorageData();
 
         return () => {
-            setWaterIngestions(null);
-            setWaterIngestionsTotalAmount(null);
+            setWaterIntakes(null);
+            setWaterIntakesTotalAmount(null);
             setLoading(true);
         }
-    }, [cookies.water_ingestions]);
+    }, [cookies.water_intakes]);
 
 
     return (
@@ -60,13 +60,13 @@ const CardConsumoAguaHoje = () => {
             <Card className="mb-3">
                 <Card.Header className='d-flex'>
                     <Card.Title>Controle de Água</Card.Title>
-                    <RegisterWaterIngestionModal handleRegisterWaterIngestion={handleRegisterWaterIngestion} setAmount={setAmount} />
+                    <RegisterWaterIntakeModal handleRegisterWaterIntake={handleRegisterWaterIntake} setAmount={setAmount} />
                 </Card.Header>
                 {(!loading) ? (
                     <Card.Body>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Meta diária:</strong> {userProfileData.daily_water_amount} ml</Card.Subtitle>
-                        <Card.Subtitle className="mb-3 text-muted"><strong>Total consumido hoje:</strong> {waterIngestionsTotalAmount} ml</Card.Subtitle>
-                        <ProgressBar animated now={waterIngestionsTotalAmount} max={userProfileData.daily_water_amount} label={`${((waterIngestionsTotalAmount / userProfileData.daily_water_amount) * 100).toFixed(2)}%`} />
+                        <Card.Subtitle className="mb-3 text-muted"><strong>Total consumido hoje:</strong> {waterIntakesTotalAmount} ml</Card.Subtitle>
+                        <ProgressBar animated now={waterIntakesTotalAmount} max={userProfileData.daily_water_amount} label={`${((waterIntakesTotalAmount / userProfileData.daily_water_amount) * 100).toFixed(2)}%`} />
                         <table className="table table-hover">
                             <thead>
                                 <tr>
@@ -76,13 +76,13 @@ const CardConsumoAguaHoje = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {waterIngestions.length > 0 ? (
-                                    waterIngestions.map((waterIngestion, index) => (
+                                {waterIntakes.length > 0 ? (
+                                    waterIntakes.map((waterIntake, index) => (
                                         <tr key={index}>
-                                            <td className='text-center'>{new Date(waterIngestion.created_at).toLocaleTimeString('pt-BR')}</td>
-                                            <td className='text-center'>{waterIngestion.amount} ml</td>
+                                            <td className='text-center'>{new Date(waterIntake.created_at).toLocaleTimeString('pt-BR')}</td>
+                                            <td className='text-center'>{waterIntake.amount} ml</td>
                                             <td className='text-center'>
-                                                <Button variant="danger" onClick={() => handleDeleteButtonClick(waterIngestion.id)}><FiTrash /></Button>
+                                                <Button variant="danger" onClick={() => handleDeleteButtonClick(waterIntake.id)}><FiTrash /></Button>
                                             </td>
                                         </tr>
                                     ))

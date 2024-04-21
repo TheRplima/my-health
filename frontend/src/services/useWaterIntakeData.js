@@ -8,20 +8,20 @@ const apiPrivate = (token) => {
   return api
 }
 
-async function getWaterIngestion(token) {
+async function getWaterIntake(token) {
   apiPrivate(token);
 
-  return api.get('api/water-ingestion/get-water-ingestion-by-day').then(response => {
+  return api.get('api/water-intake/get-water-intake-by-day').then(response => {
     return response.data
   }).catch(error => {
     console.log('Error', error.message);
   });
 }
 
-async function registerWaterIngestion(amount, token) {
+async function registerWaterIntake(amount, token) {
   apiPrivate(token);
 
-  return api.post('api/water-ingestion',{amount}).then(response => {
+  return api.post('api/water-intake',{amount}).then(response => {
      apiTelegram.post('sendMessage', {
       chat_id: process.env.REACT_APP_API_TELEGRAM_CHAT_ID,
       text: `/drinkWater ${amount}`
@@ -36,35 +36,35 @@ async function registerWaterIngestion(amount, token) {
   });
 }
 
-async function deleteWaterIngestion(id, token) {
+async function deleteWaterIntake(id, token) {
   apiPrivate(token);
 
-  return api.delete(`api/water-ingestion/${id}`).then(response => {
+  return api.delete(`api/water-intake/${id}`).then(response => {
     return response.data
   }).catch(error => {
     console.log('Error', error.message);
   });
 }
 
-const useWaterIngestionData = () => {
+const useWaterIntakeData = () => {
   const [cookies, setCookies] = useCookies();
 
-  const handleGetWaterIngestion = async (refresh = false) => {
+  const handleGetWaterIntake = async (refresh = false) => {
 
-    if (cookies.water_ingestions && refresh === false) {
-      return cookies.water_ingestions
+    if (cookies.water_intakes && refresh === false) {
+      return cookies.water_intakes
     }
 
     const token = cookies.token
 
-    getWaterIngestion(token).then(data => {
-      const water_ingestions = {
-        list: data.water_ingestion_list,
+    getWaterIntake(token).then(data => {
+      const water_intakes = {
+        list: data.water_intake_list,
         total_amount: data.total_amount
       }
-      setCookies('water_ingestions', JSON.stringify(water_ingestions));
+      setCookies('water_intakes', JSON.stringify(water_intakes));
 
-      return water_ingestions
+      return water_intakes
     }).catch((error) => {
       console.log('Error', error.message);
     });
@@ -73,34 +73,34 @@ const useWaterIngestionData = () => {
 
   }
 
-  const [waterIngestionData] = useState(handleGetWaterIngestion())
+  const [waterIntakeData] = useState(handleGetWaterIntake())
 
-  const handleRegisterWaterIngestion = async (amount) => {
+  const handleRegisterWaterIntake = async (amount) => {
     const token = cookies.token
 
-    registerWaterIngestion(amount, token).then(data => {
-      handleGetWaterIngestion(true)
+    registerWaterIntake(amount, token).then(data => {
+      handleGetWaterIntake(true)
     }).catch((error) => {
       console.log('Error', error.message);
     });
   }
 
-  const handleDeleteWaterIngestion = async (id) => {
+  const handleDeleteWaterIntake = async (id) => {
     const token = cookies.token
 
-    deleteWaterIngestion(id, token).then(data => {
-      handleGetWaterIngestion(true)
+    deleteWaterIntake(id, token).then(data => {
+      handleGetWaterIntake(true)
     }).catch((error) => {
       console.log('Error', error.message);
     });
   }
 
   return {
-    getWaterIngestionData: handleGetWaterIngestion,
-    setWaterIngestionData: handleRegisterWaterIngestion,
-    deleteWaterIngestion: handleDeleteWaterIngestion,
-    waterIngestionData
+    getWaterIntakeData: handleGetWaterIntake,
+    setWaterIntakeData: handleRegisterWaterIntake,
+    deleteWaterIntake: handleDeleteWaterIntake,
+    waterIntakeData
   }
 }
 
-export default useWaterIngestionData
+export default useWaterIntakeData
