@@ -24,6 +24,7 @@ return new class extends Migration
             $table->integer('daily_water_amount')->nullable();
             $table->enum('activity_level',[0.2,0.375,0.55,0.725,0.9])->nullable();
             $table->boolean('active')->default(1);
+            $table->text('image')->nullable();
             $table->timestamps();
         });
     }

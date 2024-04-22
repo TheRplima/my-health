@@ -25,7 +25,8 @@ class UserResource extends JsonResource
             'height' => $this['height'] ?? null,
             'weight' => $this['weight'] ?? null,
             'daily_water_amount' => $this['daily_water_amount'] ?? null,
-            'activity_level' => $this['activity_level'] ?? null
+            'activity_level' => $this['activity_level'] ?? null,
+            'image' => $this['image'] ?? null,
         ];
     }
 }

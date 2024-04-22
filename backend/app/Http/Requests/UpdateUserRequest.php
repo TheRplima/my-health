@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
-class RegisterUserRequest extends FormRequest
+class UpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +24,10 @@ class RegisterUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:6'],
-            'password_confirmation' => ['required', 'string', 'same:password'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users')->ignore(Auth::id())],
+            'password' => ['nullable', 'string', 'min:6', 'required_with:password_confirmation'],
+            'password_confirmation' => ['nullable', 'string', 'same:password', 'required_with:password'],
             'phone'     => ['nullable', 'numeric', 'digits_between:10,11'],
             'gender' => ['nullable', 'string', 'max:1'],
             'dob' => ['nullable', 'date', 'before:-14 years'],

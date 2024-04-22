@@ -25,6 +25,7 @@ class UserSeeder extends Seeder
             'weight' => 81,
             'daily_water_amount' => 4500,
             'activity_level' => 0.725,
+            'image' => 'images/users/male.jpg',
             'active' => 1
         ]);
         // User::factory(10)->create();

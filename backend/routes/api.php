@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WaterIntakeController;
 use App\Http\Controllers\WaterIntakeContainersController;
 use App\Http\Controllers\WeightControlController;
+use App\Http\Controllers\WaterIntakeController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +24,14 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('logout', 'logout');
     Route::post('refresh', 'refresh');
 
+});
+
+Route::controller(UserController::class)->group(function () {
+    Route::get('users', [UserController::class, 'index'])->name('user.index');
+    Route::post('user', [UserController::class, 'store'])->name('user.store');
+    Route::get('user/{user}', [UserController::class, 'show'])->name('user.show');
+    Route::match(['put', 'patch'], 'user/{user}', [UserController::class, 'update'])->name('user.update');
+    Route::delete('user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
 });
 
 Route::controller(WaterIntakeController::class)->group(function () {
