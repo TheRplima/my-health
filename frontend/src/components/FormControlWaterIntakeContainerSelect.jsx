@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react'
 import Form from 'react-bootstrap/Form';
 import { useAuth } from "../hooks/auth";
 import useWaterIntakeContainerData from '../services/useWaterIntakeContainerData';
-import Spinner from 'react-bootstrap/Spinner';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+import { Dropdown } from 'react-bootstrap';
 
 function FormControlWaterIntakeContainerSelect(props) {
     const { waterIntakeContainerData } = useWaterIntakeContainerData();
     const { cookies } = useAuth();
     const [waterIntakeContainers, setWaterIntakeContainers] = useState(null);
     const [loading, setLoading] = useState(true);
+    library.add(fas);
 
     useEffect(() => {
         async function loadStorageData() {
@@ -28,26 +32,29 @@ function FormControlWaterIntakeContainerSelect(props) {
 
     return (
         <>
-            <Form.Select onChange={e => props.setAmount(e.target.value)}>
-                <option value={0} key={-1}>Escolha um recipiente</option>
+
+            <Dropdown onSelect={(evtKey) => props.setAmount(evtKey)} className="d-grid gap-2">
+                <Dropdown.Toggle variant={'outline-secondary'} bg={'light'}>
+                    Escolha um recipiente
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
                 {(!loading) ? (
                     <>
                         {waterIntakeContainers?.length > 0 ? (
                             waterIntakeContainers.map((waterIntakeContainer, index) => (
-                                <option value={waterIntakeContainer.size} key={index}>{waterIntakeContainer.name}</option>
+                                <Dropdown.Item key={waterIntakeContainer.size} eventKey={waterIntakeContainer.size}>
+                                    <FontAwesomeIcon icon={['fas',waterIntakeContainer.icon]} /> {waterIntakeContainer.name}
+                                </Dropdown.Item>
                             ))
                         ) : (
-                            <option>Nenhum registro encontrado</option>
+                            <Dropdown.Item>Nenhum registro encontrado</Dropdown.Item>
                         )}
                     </>
                 ) : (
-                    <option>
-                        <Spinner animation="border" role="status">
-                            <span className="sr-only">Loading...</span>
-                        </Spinner>
-                    </option>
+                    <Dropdown.Item>Loading...</Dropdown.Item>
                 )}
-            </Form.Select>
+                </Dropdown.Menu>
+            </Dropdown>
         </>
     );
 }
