@@ -22,10 +22,11 @@ class WaterIntakeController extends Controller
     public function index(GetWaterIntakeRequest $request)
     {
         $data = $request->validated();
-
-        if ($data['initial_date'] && $data['final_date']) {
-            $initialDate = Carbon::createFromFormat('Y-m-d', $data['initial_date']);
-            $finalDate = Carbon::createFromFormat('Y-m-d', $data['final_date']);
+        $initialDate = isset($data['initial_date']) && $data['initial_date'] ? $data['initial_date'] : null;
+        $finalDate = isset($data['final_date']) && $data['final_date'] ? $data['final_date'] : null;
+        if ($initialDate && $finalDate) {
+            $initialDate = Carbon::createFromFormat('Y-m-d', $initialDate);
+            $finalDate = Carbon::createFromFormat('Y-m-d', $finalDate);
             $waterIntakes = auth()->user()->WaterIntake()
                 ->whereDate('created_at', ">=", $initialDate)
                 ->whereDate('created_at', "<=", $finalDate)
@@ -81,7 +82,7 @@ class WaterIntakeController extends Controller
     {
         $data = $request->validated();
 
-        $date = $data['date'] ? $data['date'] : now()->toDateString();
+        $date = isset($data['date']) && $data['date'] ? $data['date'] : now()->toDateString();
         $waterIntakes = auth()->user()->WaterIntake()
             ->whereDate('created_at', $date)
             ->get();

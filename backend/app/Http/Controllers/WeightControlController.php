@@ -23,10 +23,11 @@ class WeightControlController extends Controller
     public function index(GetWeightControlRequest $request)
     {
         $data = $request->validated();
-
-        if ($data['initial_date'] && $data['final_date']) {
-            $initialDate = Carbon::createFromFormat('Y-m-d', $data['initial_date']);
-            $finalDate = Carbon::createFromFormat('Y-m-d', $data['final_date']);
+        $initialDate = isset($data['initial_date']) && $data['initial_date'] ? $data['initial_date'] : null;
+        $finalDate = isset($data['final_date']) && $data['final_date'] ? $data['final_date'] : null;
+        if ($initialDate && $finalDate) {
+            $initialDate = Carbon::createFromFormat('Y-m-d', $initialDate);
+            $finalDate = Carbon::createFromFormat('Y-m-d', $finalDate);
             $weightControls = auth()->user()->weightControl()
                 ->whereDate('created_at', ">=", $initialDate)
                 ->whereDate('created_at', "<=", $finalDate)
@@ -53,7 +54,7 @@ class WeightControlController extends Controller
     public function store(StoreWeightControlRequest $request)
     {
         $data = $request->validated();
-        if ($data['date']) {
+        if (isset($data['date']) && $data['date']) {
             $date = Carbon::createFromFormat('Y-m-d', $data['date']);
             $data['created_at'] = $date;
             $data['updated_at'] = $date;
