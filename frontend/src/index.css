@@ -82,9 +82,10 @@
 }
 
 #profile-card .card-header {
-  display: none;
-}
-#profile-card:hover .card-header, #profile-card .editing {
   display: flex;
   justify-content: space-between;
+}
+#profile-card:hover .card-header, #profile-card .editing {
+
+  transition: ease;
 }

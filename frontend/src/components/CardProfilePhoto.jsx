@@ -37,7 +37,6 @@ const CardProfilePhoto = () => {
     const handleChange = async (event) => {
         const base64 = await convertBase64(event.target.files[0])
         setFile(base64)
-        console.log(base64)
       }
 
       const convertBase64 = (file) => {
@@ -60,7 +59,6 @@ const CardProfilePhoto = () => {
             formDataObj = Object.fromEntries(formData.entries())
         formDataObj.phone = formDataObj.phone.replace(/\D/g, '');
         formDataObj.image = formDataObj.image ? file : null;
-        console.log(formDataObj)
         updateUserProfile(user.id, formDataObj);
 
         setLoading(false);
@@ -86,13 +84,13 @@ const CardProfilePhoto = () => {
             {(!loading && user) ? (
                 <Card className="mb-3" id={'profile-card'}>
                     <Card.Header className={editing ? 'editing' : ''}>
-                        <Card.Title>Editar Perfil</Card.Title>
+                        {editing ? (<Card.Title>Editar Perfil</Card.Title>) : <Card.Title>Perfil</Card.Title>}
                         <Button variant="primary" size={'sm'} title={'Editar Perfil'} onClick={handleEditProfile}>
                             <FontAwesomeIcon icon={['fa', 'pen']} />
                         </Button>
                     </Card.Header>
                     {!editing ? (
-                        <Card.Img className="mx-auto rounded-circle" variant="top" src={
+                        <Card.Img className="m-auto p-5 rounded-circle" variant="top" src={
                             user.image ? (
                                 process.env.REACT_APP_API_BASE_URL + 'storage/' + user.image
                             ) : (
