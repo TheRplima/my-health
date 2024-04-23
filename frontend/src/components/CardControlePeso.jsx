@@ -13,6 +13,7 @@ import Spinner from 'react-bootstrap/Spinner';
 
 const CardControlePeso = () => {
     const [weight, setWeight] = useState(0);
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [userProfileData, setUserProfileData] = useState(null);
     const [weightControls, setWeightControls] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -20,7 +21,7 @@ const CardControlePeso = () => {
     const { setWeightControlData, deleteWeightControl } = useWeightControlData(5)
 
     const handleRegisterWeightControl = async (e) => {
-        setWeightControlData(weight)
+        setWeightControlData(date, weight)
     }
 
     const handleDeleteButtonClick = (id) => {
@@ -61,7 +62,7 @@ const CardControlePeso = () => {
             <Card className="mb-3">
                 <Card.Header className='d-flex'>
                     <Card.Title>Controle de Peso</Card.Title>
-                    <RegisterWeightControlModal handleRegisterWeightControl={handleRegisterWeightControl} setWeight={setWeight} />
+                    <RegisterWeightControlModal handleRegisterWeightControl={handleRegisterWeightControl} setWeight={setWeight} setDate={setDate} />
                 </Card.Header>
                 {(!loading) ? (
                     <Card.Body>

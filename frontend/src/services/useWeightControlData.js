@@ -29,10 +29,10 @@ async function getWeightControl(token, max = 0, initial_date = null, final_date 
   });
 }
 
-async function registerWeightControl(weight, token) {
+async function registerWeightControl(date, weight, token) {
   apiPrivate(token);
 
-  return api.post('api/weight-control',{weight}).then(response => {
+  return api.post('api/weight-control',{date, weight}).then(response => {
     return response.data
   }).catch(error => {
     console.log('Error', error.message);
@@ -76,10 +76,10 @@ const useWeightControlData = (max = 0, initial_date = null, final_date = null) =
 
   const [weightControlData] = useState(handleGetWeightControl(false, max, initial_date, final_date))
 
-  const handleRegisterWeightControl = async (weight) => {
+  const handleRegisterWeightControl = async (date, weight) => {
     const token = cookies.token
 
-    registerWeightControl(weight, token).then(data => {
+    registerWeightControl(date, weight, token).then(data => {
       handleGetWeightControl(true, max, initial_date, final_date)
       getUserProfileData(true);
     }).catch((error) => {
