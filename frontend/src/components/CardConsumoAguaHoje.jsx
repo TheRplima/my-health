@@ -66,7 +66,7 @@ const CardConsumoAguaHoje = () => {
                     <Card.Body>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Meta diária:</strong> {userProfileData.daily_water_amount} ml</Card.Subtitle>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Total consumido hoje:</strong> {waterIntakesTotalAmount} ml</Card.Subtitle>
-                        <ProgressBar animated now={waterIntakesTotalAmount} max={userProfileData.daily_water_amount} label={`${((waterIntakesTotalAmount / userProfileData.daily_water_amount) * 100).toFixed(2)}%`} />
+                        <ProgressBar animated now={waterIntakesTotalAmount} max={userProfileData.daily_water_amount} label={waterIntakesTotalAmount > 0 ? `${((waterIntakesTotalAmount / userProfileData.daily_water_amount) * 100).toFixed(2)}%` : ''} />
                         <table className="table table-hover">
                             <thead>
                                 <tr>
@@ -82,7 +82,7 @@ const CardConsumoAguaHoje = () => {
                                             <td className='text-center'>{new Date(waterIntake.created_at).toLocaleTimeString('pt-BR')}</td>
                                             <td className='text-center'>{waterIntake.amount} ml</td>
                                             <td className='text-center'>
-                                                <Button variant="danger" onClick={() => handleDeleteButtonClick(waterIntake.id)}><FiTrash /></Button>
+                                                <Button variant="danger" size={'sm'} onClick={() => handleDeleteButtonClick(waterIntake.id)}><FiTrash /></Button>
                                             </td>
                                         </tr>
                                     ))

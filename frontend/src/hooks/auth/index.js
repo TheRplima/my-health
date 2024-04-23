@@ -35,23 +35,6 @@ export const UserProvider = ({ children }) => {
         navigate('/login');
     };
 
-    const register = async (data) => {
-        api.post('api/register', {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            password_confirmation: data.password_confirmation
-        }).then(response => {
-            setCookies('token', response.data.authorisation.token);
-            setCookies('user', JSON.stringify(response.data.user));
-            alert('Cadastro realizado com sucesso!')
-            navigate(process.env.REACT_APP_HOME_PAGE);
-        }).catch(error => {
-            console.log(error);
-            alert('Erro ao realizar cadastro: ' + error.response.data.message);
-        });
-    }
-
     const refreshUser = async () => {
         apiPrivate();
 
@@ -68,7 +51,6 @@ export const UserProvider = ({ children }) => {
             cookies,
             login,
             logout,
-            register,
             refreshUser
         }),
         [cookies]

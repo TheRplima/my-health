@@ -13,6 +13,7 @@ import Spinner from 'react-bootstrap/Spinner';
 
 const CardControlePeso = () => {
     const [weight, setWeight] = useState(0);
+    const [userProfileData, setUserProfileData] = useState(null);
     const [weightControls, setWeightControls] = useState(null);
     const [loading, setLoading] = useState(true);
     const { cookies } = useAuth();
@@ -34,9 +35,15 @@ const CardControlePeso = () => {
     useEffect(() => {
         async function loadStorageData() {
             const storageWeightControl = cookies.weight_controls;
+            const storageUserProfile = cookies.user;
 
             if (storageWeightControl) {
                 setWeightControls(storageWeightControl);
+                setLoading(false);
+            }
+
+            if (storageUserProfile) {
+                setUserProfileData(storageUserProfile);
                 setLoading(false);
             }
         }
@@ -58,7 +65,7 @@ const CardControlePeso = () => {
                 </Card.Header>
                 {(!loading) ? (
                     <Card.Body>
-                        <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {weightControls[weightControls.length-1].weight}  Kg</Card.Subtitle>
+                        <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {userProfileData.weight}  Kg</Card.Subtitle>
                         <Card.Subtitle className="mb-3 text-muted"><strong>Últimos 5 registros</strong></Card.Subtitle>
                         <table className="table table-hover">
                             <thead>
@@ -69,13 +76,13 @@ const CardControlePeso = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {weightControls.length > 0 ? (
+                                {weightControls?.length > 0 ? (
                                     weightControls.map((weightControl, index) => (
                                         <tr key={index}>
                                             <td className='text-center'>{new Date(weightControl.created_at).toLocaleDateString('pt-BR')}</td>
                                             <td className='text-center'>{weightControl.weight} Kg</td>
                                             <td className='text-center'>
-                                                <Button variant='danger' title={'Remover registro'} onClick={(e) => handleDeleteButtonClick(weightControl.id)}><FiTrash /></Button>
+                                                <Button variant='danger' size={'sm'} title={'Remover registro'} onClick={(e) => handleDeleteButtonClick(weightControl.id)}><FiTrash /></Button>
                                             </td>
                                         </tr>
                                     ))

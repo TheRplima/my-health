@@ -80,3 +80,11 @@
 .app-container .content form .input-group input + input {
   margin-left: 8px;
 }
+
+#profile-card .card-header {
+  display: none;
+}
+#profile-card:hover .card-header, #profile-card .editing {
+  display: flex;
+  justify-content: space-between;
+}

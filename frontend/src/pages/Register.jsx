@@ -6,16 +6,16 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { useAuth } from "../hooks/auth";
+import useUserProfileData from '../services/useUserProfileData';
 
-const Register = (props) => {
+const Register = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [validated, setValidated] = useState(false);
 
-    const { register } = useAuth();
+    const { setUserProfileData } = useUserProfileData(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -27,7 +27,7 @@ const Register = (props) => {
         }
 
         setValidated(true);
-        register({ name, email, password, password_confirmation: confirmPassword })
+        setUserProfileData({ name, email, password, password_confirmation: confirmPassword })
     };
 
     return (

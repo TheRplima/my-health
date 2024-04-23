@@ -16,7 +16,7 @@ export default function RegisterWaterIntake(props) {
     const [btnTitle, setBtnTitle] = useState('Inserir quantidade manualmente');
 
     library.add(fas);
-    
+
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
@@ -44,7 +44,7 @@ export default function RegisterWaterIntake(props) {
     return (
         <>
             <Button className='ms-auto' size='sm' variant="primary" title='Registrar consumo de água' onClick={handleShow} >
-            <FontAwesomeIcon icon={['fa', 'plus']} />
+                <FontAwesomeIcon icon={['fa', 'plus']} />
             </Button>
 
             <Modal show={show} onHide={handleClose}>
