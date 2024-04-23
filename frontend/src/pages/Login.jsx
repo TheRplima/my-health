@@ -12,17 +12,18 @@ import { FiLogIn } from 'react-icons/fi';
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [keepLoggedIn, setKeepLoggedIn] = useState('');
     const { login } = useAuth();
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        login({ email, password })
+        login({ email, password, keepLoggedIn })
     };
 
     return (
         <div className="login-container">
             <div className="content">
-            <Container>
+                <Container>
                     <Row>
                         <Col lg={6}>
                             <h1>Login</h1>
@@ -35,7 +36,7 @@ export default function Login() {
                         </Col>
                         <Col lg={6}>
                             <Form onSubmit={handleSubmit}>
-                                   <Form.Group className="mb-3" controlId="loginFormEmail">
+                                <Form.Group className="mb-3" controlId="loginFormEmail">
                                     <Form.Label>Email</Form.Label>
                                     <Form.Control required type="email" onChange={(e) => setEmail(e.target.value)} />
                                 </Form.Group>
@@ -43,6 +44,15 @@ export default function Login() {
                                 <Form.Group className="mb-3" controlId="loginFormPassword">
                                     <Form.Label>Senha</Form.Label>
                                     <Form.Control required type="password" minLength={6} onChange={(e) => setPassword(e.target.value)} />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3" controlId="keepLogggedIn">
+                                    <Form.Check // prettier-ignore
+                                        type='checkbox'
+                                        id={'keepLoggedIn'}
+                                        label={'Manter conectado'}
+                                        onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                                    />
                                 </Form.Group>
 
                                 <Button variant="primary" type="submit">

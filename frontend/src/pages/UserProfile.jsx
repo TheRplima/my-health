@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+
+import { useAuth } from "../hooks/auth";
 
 import CardProfilePhoto from '../components/CardProfilePhoto'
 import CardConsumoAguaHoje from '../components/CardConsumoAguaHoje'
@@ -10,6 +12,17 @@ import Col from 'react-bootstrap/Col';
 
 
 const UserProfile = () => {
+    const { cookies, checkToken, refreshUser } = useAuth();
+
+    useEffect(() => {
+        const token = cookies.token
+        const keepLoggedIn = cookies.keepLoggedIn
+        console.log('Token', token)
+        if (checkToken(token) === false && keepLoggedIn === true) {
+            refreshUser();
+        }
+    }
+    , [cookies.token])
 
     return (
         <>

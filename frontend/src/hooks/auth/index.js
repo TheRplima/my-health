@@ -15,23 +15,36 @@ export const UserProvider = ({ children }) => {
         return api
     }
 
-    const login = async ({ email, password }) => {
+    const login = async ({ email, password, keepLoggedIn }) => {
         api.post('api/login', {
             email: email,
             password: password
         }).then(response => {
-            setCookies('token', response.data.authorisation.token);
-            setCookies('user', JSON.stringify(response.data.user));
+            if (checkToken(response.data.authorisation.token) === false) {
+                alert('Token expirado, faça login novamente');
+                logout();
+                return;
+            }
+
+            if (keepLoggedIn) {
+                setCookies('token', response.data.authorisation.token, { maxAge: 60 * 60 * 24 * 7 });
+                setCookies('user', JSON.stringify(response.data.user), { maxAge: 60 * 60 * 24 * 7 });
+                setCookies('keepLoggedIn', true, { maxAge: 60 * 60 * 24 * 7 });
+            }else {
+                setCookies('token', response.data.authorisation.token);
+                setCookies('user', JSON.stringify(response.data.user));
+                setCookies('keepLoggedIn', false);
+            }
 
             navigate(process.env.REACT_APP_HOME_PAGE);
         }).catch(error => {
             console.log(error);
-            alert('Erro ao realizar cadastro: ' + error.response.data.message);
+            alert('Erro ao realizar login: ' + error.response.data.message);
         });
     };
 
     const logout = () => {
-        ['token', 'user', 'water_intakes', 'weight_controls', 'water_intake_containers'].forEach(obj => removeCookie(obj));
+        ['token', 'user', 'water_intakes', 'weight_controls', 'water_intake_containers', 'keepLoggedIn'].forEach(obj => removeCookie(obj));
         navigate('/login');
     };
 
@@ -39,11 +52,39 @@ export const UserProvider = ({ children }) => {
         apiPrivate();
 
         return api.post('api/refresh').then(response => {
-            setCookies('token', response.data.authorisation.token);
-            setCookies('user', JSON.stringify(response.data.user));
+            if (checkToken(response.data.authorisation.token) === false) {
+                alert('Token expirado, faça login novamente');
+                logout();
+                return;
+            }
+            const keepLoggedIn = cookies.keepLoggedIn;
+            if (keepLoggedIn) {
+                setCookies('token', response.data.authorisation.token, { maxAge: 60 * 60 * 24 * 7 });
+                setCookies('user', JSON.stringify(response.data.user), { maxAge: 60 * 60 * 24 * 7 });
+            }else {
+                setCookies('token', response.data.authorisation.token);
+                setCookies('user', JSON.stringify(response.data.user));
+            }
         }).catch(error => {
             console.log('Error', error.message);
         });
+    }
+
+    const parseJwt = (token) => {
+        try {
+            return JSON.parse(atob(token.split(".")[1]));
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const checkToken = (token) => {
+        const decodedJwt = parseJwt(token);
+
+        if (decodedJwt.exp * 1000 < Date.now()) {
+            return false;
+        }
+        return true;
     }
 
     const value = useMemo(
@@ -51,7 +92,8 @@ export const UserProvider = ({ children }) => {
             cookies,
             login,
             logout,
-            refreshUser
+            refreshUser,
+            checkToken
         }),
         [cookies]
     );
