@@ -65,7 +65,7 @@ class UserController extends Controller
             $extension  =explode(':', substr($request['image'], 0, strpos($request['image'], ';')));
             $extension = explode('/', $extension[count($extension)-1])[1];
             $format = $extension == 'jpeg' ? 'jpg' : $extension;
-            $name = base64_encode($user->name.Carbon::now()).'.'.$format;
+            $name = md5($user->name.Carbon::now()).'.'.$format;
             $filePath = 'images/users/'.$name;
             $image = str_replace(' ', '+', str_replace(substr($request['image'], 0, strpos($request['image'], ',')+1), '', $request['image']));
             Storage::disk('public')->put($filePath, base64_decode($image), 'public');
