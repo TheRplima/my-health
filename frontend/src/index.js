@@ -7,6 +7,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+document.title = 'My Health'
+
 root.render(
   <div className="App">
     <React.StrictMode>
