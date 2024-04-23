@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCookies } from 'react-cookie';
 import api from './api';
+import useUserProfileData from './useUserProfileData';
 
 const apiPrivate = (token) => {
   api.defaults.headers.Authorization = `Bearer ${token}`;
@@ -50,6 +51,7 @@ async function deleteWeightControl(id, token) {
 
 const useWeightControlData = (max = 0, initial_date = null, final_date = null) => {
   const [cookies, setCookies] = useCookies();
+  const { getUserProfileData } = useUserProfileData()
 
   const handleGetWeightControl = async (refresh = false, max = 0, initial_date = null, final_date = null) => {
 
@@ -79,6 +81,7 @@ const useWeightControlData = (max = 0, initial_date = null, final_date = null) =
 
     registerWeightControl(weight, token).then(data => {
       handleGetWeightControl(true, max, initial_date, final_date)
+      getUserProfileData(true);
     }).catch((error) => {
       console.log('Error', error.message);
     });
@@ -89,6 +92,7 @@ const useWeightControlData = (max = 0, initial_date = null, final_date = null) =
 
     deleteWeightControl(id, token).then(data => {
       handleGetWeightControl(true, max, initial_date, final_date)
+      getUserProfileData(true);
     }).catch((error) => {
       console.log('Error', error.message);
     });
