@@ -32,7 +32,7 @@ class UserController extends Controller
         }
 
         $user = User::create(UserResource::make($data)->toArray($request));
-
+        unset($user['password']);
         $token = Auth::login($user);
         return response()->json([
             'status' => 'success',
@@ -45,8 +45,14 @@ class UserController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function show(User $user): JsonResponse
+    public function show($id = null): JsonResponse
     {
+        if (!$id) {
+            $user = Auth::user();
+        }else{
+            $user = User::findOrFail($id);
+        }
+
         return (new UserResource($user))->response();
     }
 

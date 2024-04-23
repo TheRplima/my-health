@@ -16,6 +16,7 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this['id'] ?? null,
             'name' => $this['name'],
             'email' => $this['email'],
             'password' => Hash::make($this['password']),
