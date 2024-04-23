@@ -65,7 +65,7 @@ class WeightControlController extends Controller
         $weightControl = WeightControl::create($data);
 
         $user = Auth::user();
-        $user->weight = $request->weight;
+        $user->weight = WeightControl::latest()->first()->weight;
         $user->save();
 
         return response()->json([
