@@ -31,9 +31,11 @@ async function registerUserProfile(userData, token) {
 
 async function updateUserProfile(id, userData, token) {
     apiPrivate(token);
-    const { name, email, phone, dob, gender, activity_level } = userData
-
-    return api.put('api/user/' + id, { name, email, phone, dob, gender, activity_level }).then(response => {
+    const { name, email, phone, dob, gender, activity_level, image } = userData
+    if (image) {
+        api.defaults.headers.ContentType = 'multipart/form-data';
+    }
+    return api.put('api/user/' + id, { name, email, phone, dob, gender, activity_level, image }).then(response => {
         return response.data
     }).catch(error => {
         console.log('Error', error.message);

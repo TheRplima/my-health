@@ -22,6 +22,7 @@ const CardProfilePhoto = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
+    const [file, setFile] = useState()
 
     library.add(fas);
 
@@ -33,12 +34,33 @@ const CardProfilePhoto = () => {
         setEditing(false)
     }
 
+    const handleChange = async (event) => {
+        const base64 = await convertBase64(event.target.files[0])
+        setFile(base64)
+        console.log(base64)
+      }
+
+      const convertBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+          const fileReader = new FileReader();
+          fileReader.readAsDataURL(file)
+          fileReader.onload = () => {
+            resolve(fileReader.result);
+          }
+          fileReader.onerror = (error) => {
+            reject(error);
+          }
+        })
+      }
+
     const handleEditProfileFormSubmit = (e) => {
         e.preventDefault()
 
         const formData = new FormData(e.target),
             formDataObj = Object.fromEntries(formData.entries())
-            formDataObj.phone = formDataObj.phone.replace(/\D/g, '');
+        formDataObj.phone = formDataObj.phone.replace(/\D/g, '');
+        formDataObj.image = formDataObj.image ? file : null;
+        console.log(formDataObj)
         updateUserProfile(user.id, formDataObj);
 
         setLoading(false);
@@ -69,13 +91,15 @@ const CardProfilePhoto = () => {
                             <FontAwesomeIcon icon={['fa', 'pen']} />
                         </Button>
                     </Card.Header>
-                    <Card.Img className="mx-auto rounded-circle" variant="top" src={
-                        user.image ? (
-                            process.env.REACT_APP_API_BASE_URL + 'storage/' + user.image
-                        ) : (
-                            user.gender === 'M' ? 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp' : 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2.webp'
-                        )
-                    } />
+                    {!editing ? (
+                        <Card.Img className="mx-auto rounded-circle" variant="top" src={
+                            user.image ? (
+                                process.env.REACT_APP_API_BASE_URL + 'storage/' + user.image
+                            ) : (
+                                user.gender === 'M' ? 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp' : 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2.webp'
+                            )
+                        } />
+                    ) : ('')}
                     <Card.Body>
                         {!editing ? (
                             <ListGroup variant="flush">
@@ -114,6 +138,9 @@ const CardProfilePhoto = () => {
                         ) : (
                             <Form onSubmit={handleEditProfileFormSubmit}>
                                 <ListGroup variant="flush">
+                                    <ListGroup.Item>
+                                        <Form.Control type="file" name='image' onChange={handleChange} />
+                                    </ListGroup.Item>
                                     <ListGroup.Item>
                                         <strong>Nome:</strong> <Form.Control name="name" defaultValue={user.name} />
                                     </ListGroup.Item>
