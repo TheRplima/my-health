@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
@@ -59,13 +60,19 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         $data = $request->validated();
-
-        if ($request->hasFile('image')) {
-            // delete image
+        if ($request['image']) {
             Storage::disk('public')->delete($user->image);
-
-            $filePath = Storage::disk('public')->put('images/users', request()->file('image'), 'public');
+            $extension  =explode(':', substr($request['image'], 0, strpos($request['image'], ';')));
+            $extension = explode('/', $extension[count($extension)-1])[1];
+            $format = $extension == 'jpeg' ? 'jpg' : $extension;
+            $name = base64_encode($user->name.Carbon::now()).'.'.$format;
+            $filePath = 'images/users/'.$name;
+            $image = str_replace(' ', '+', str_replace(substr($request['image'], 0, strpos($request['image'], ',')+1), '', $request['image']));
+            Storage::disk('public')->put($filePath, base64_decode($image), 'public');
             $data['image'] = $filePath;
+        }
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
         }
 
         $user->fill($data);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\Base64ImageValidator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -35,7 +36,7 @@ class UpdateUserRequest extends FormRequest
             'weight' => 'nullable|numeric',
             'daily_water_amount' => 'nullable|numeric',
             'activity_level' => 'nullable|numeric',
-            'image' => 'nullable|image|max:1024|mimes:jpg,jpeg,png'
+            'image' => ['nullable', new Base64ImageValidator]
         ];
     }
 

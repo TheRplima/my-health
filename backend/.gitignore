@@ -17,5 +17,3 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-!/storage/app/public/users/images/female.jpg
-!/storage/app/public/users/images/male.jpg
