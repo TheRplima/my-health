@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GetWaterIntakeRequest;
+use App\Http\Requests\StoreWaterIntakeRequest;
 use Illuminate\Http\Request;
 use App\Models\WaterIntake;
 use Carbon\Carbon;
@@ -17,16 +19,13 @@ class WaterIntakeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(GetWaterIntakeRequest $request)
     {
-        $request->validate([
-            'initial_date' => ['nullable', 'date', 'required_with:final_date', 'filled'],
-            'final_date' => ['nullable', 'date', 'required_with:initial_date', 'filled', 'after_or_equal:initial_date']
-        ]);
+        $data = $request->validated();
 
-        if ($request->has('initial_date') && $request->has('final_date')) {
-            $initialDate = Carbon::createFromFormat('Y-m-d', $request->get('initial_date'));
-            $finalDate = Carbon::createFromFormat('Y-m-d', $request->get('final_date'));
+        if ($data['initial_date'] && $data['final_date']) {
+            $initialDate = Carbon::createFromFormat('Y-m-d', $data['initial_date']);
+            $finalDate = Carbon::createFromFormat('Y-m-d', $data['final_date']);
             $waterIntakes = auth()->user()->WaterIntake()
                 ->whereDate('created_at', ">=", $initialDate)
                 ->whereDate('created_at', "<=", $finalDate)
@@ -50,17 +49,11 @@ class WaterIntakeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreWaterIntakeRequest $request)
     {
-        $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'amount' => 'required|numeric'
-        ]);
-
-        $waterIntake = WaterIntake::create([
-            'user_id' => auth()->user()->id ?? $request->user_id,
-            'amount' => $request->amount,
-        ]);
+        $data = $request->validated();
+        $data['user_id'] = auth()->user()->id ?? $request->user_id;
+        $waterIntake = WaterIntake::create($data);
 
         return response()->json([
             'status' => 'success',
@@ -84,13 +77,11 @@ class WaterIntakeController extends Controller
         ]);
     }
 
-    public function getWaterIntakesByDay(Request $request)
+    public function getWaterIntakesByDay(GetWaterIntakeRequest $request)
     {
-        $request->validate([
-            'date' => ['nullable', 'date', 'filled']
-        ]);
+        $data = $request->validated();
 
-        $date = $request->has('date') ? $request->get('date') : now()->toDateString();
+        $date = $data['date'] ? $data['date'] : now()->toDateString();
         $waterIntakes = auth()->user()->WaterIntake()
             ->whereDate('created_at', $date)
             ->get();

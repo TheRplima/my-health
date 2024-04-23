@@ -11,7 +11,9 @@ class WeightControl extends Model
 
     protected $fillable = [
         'user_id',
-        'weight'
+        'weight',
+        'created_at',
+        'updated_at'
     ];
 
     public function user()

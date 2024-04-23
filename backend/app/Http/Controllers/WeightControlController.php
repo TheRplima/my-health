@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GetWeightControlRequest;
+use App\Http\Requests\StoreWeightControlRequest;
 use Illuminate\Http\Request;
 use App\Models\WeightControl;
 use Carbon\Carbon;
@@ -18,25 +20,21 @@ class WeightControlController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(GetWeightControlRequest $request)
     {
-        $request->validate([
-            'initial_date' => ['nullable', 'date', 'required_with:final_date', 'filled'],
-            'final_date' => ['nullable', 'date', 'required_with:initial_date', 'filled', 'after_or_equal:initial_date'],
-            'max' => 'nullable|integer'
-        ]);
+        $data = $request->validated();
 
-        if ($request->has('initial_date') && $request->has('final_date')) {
-            $initialDate = Carbon::createFromFormat('Y-m-d', $request->get('initial_date'));
-            $finalDate = Carbon::createFromFormat('Y-m-d', $request->get('final_date'));
+        if ($data['initial_date'] && $data['final_date']) {
+            $initialDate = Carbon::createFromFormat('Y-m-d', $data['initial_date']);
+            $finalDate = Carbon::createFromFormat('Y-m-d', $data['final_date']);
             $weightControls = auth()->user()->weightControl()
                 ->whereDate('created_at', ">=", $initialDate)
                 ->whereDate('created_at', "<=", $finalDate)
                 ->get();
         }else{
-            if ($request->has('max')) {
+            if ($data['max']) {
                 $user = auth()->user();
-                $weightControls = WeightControl::where('user_id',$user->id)->orderBy('created_at','desc')->take($request->get('max'));
+                $weightControls = WeightControl::where('user_id',$user->id)->orderBy('created_at','desc')->take($data['max']);
                 $weightControls = array_reverse($weightControls->get()->toArray());
             }else{
                 $weightControls = auth()->user()->weightControl()->get();
@@ -52,17 +50,18 @@ class WeightControlController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreWeightControlRequest $request)
     {
-        $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'weight' => 'required|numeric'
-        ]);
+        $data = $request->validated();
+        if ($data['date']) {
+            $date = Carbon::createFromFormat('Y-m-d', $data['date']);
+            $data['created_at'] = $date;
+            $data['updated_at'] = $date;
+            unset($data['date']);
+        }
+        $data['user_id'] = auth()->user()->id ?? $request->user_id;
 
-        $weightControl = WeightControl::create([
-            'user_id' => auth()->user()->id ?? $request->user_id,
-            'weight' => $request->weight,
-        ]);
+        $weightControl = WeightControl::create($data);
 
         $user = Auth::user();
         $user->weight = $request->weight;
