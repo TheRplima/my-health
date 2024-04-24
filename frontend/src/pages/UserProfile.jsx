@@ -17,7 +17,6 @@ const UserProfile = () => {
     useEffect(() => {
         const token = cookies.token
         const keepLoggedIn = cookies.keepLoggedIn
-        console.log('Token', token)
         if (checkToken(token) === false && keepLoggedIn === true) {
             refreshUser();
         }
