@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from "../hooks/auth";
 
 import Container from 'react-bootstrap/Container';
@@ -8,17 +8,30 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 import { FiLogIn } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [keepLoggedIn, setKeepLoggedIn] = useState('');
-    const { login } = useAuth();
+    const { login, cookies } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = (event) => {
         event.preventDefault();
         login({ email, password, keepLoggedIn })
     };
+
+    useEffect(() => {
+        const token = cookies.token
+        const keepLoggedIn = cookies.keepLoggedIn
+        if (token && keepLoggedIn) {
+            navigate(process.env.REACT_APP_HOME_PAGE);
+        }
+        if (keepLoggedIn) {
+            setKeepLoggedIn(true)
+        }
+    }, []);
 
     return (
         <div className="login-container">
@@ -52,6 +65,7 @@ export default function Login() {
                                         id={'keepLoggedIn'}
                                         label={'Manter conectado'}
                                         onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                                        checked={keepLoggedIn}
                                     />
                                 </Form.Group>
 

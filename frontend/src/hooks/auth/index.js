@@ -43,8 +43,12 @@ export const UserProvider = ({ children }) => {
         });
     };
 
-    const logout = () => {
-        ['token', 'user', 'water_intakes', 'weight_controls', 'water_intake_containers', 'keepLoggedIn'].forEach(obj => removeCookie(obj));
+    const logout = (force = false) => {
+        if (cookies.keepLoggedIn === true && force === false) {
+            ['water_intakes', 'weight_controls', 'water_intake_containers'].forEach(obj => removeCookie(obj));
+        }else{
+            ['token', 'user', 'water_intakes', 'weight_controls', 'water_intake_containers', 'keepLoggedIn'].forEach(obj => removeCookie(obj));
+        }
         navigate('/login');
     };
 

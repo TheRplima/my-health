@@ -13,7 +13,7 @@ const Header = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        logout();
+        logout(true);
     }
 
     return (
