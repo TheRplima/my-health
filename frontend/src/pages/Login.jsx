@@ -48,7 +48,7 @@ export default function Login() {
                             </Link>
                         </Col>
                         <Col lg={6}>
-                            <Form onSubmit={handleSubmit}>
+                            <Form>
                                 <Form.Group className="mb-3" controlId="loginFormEmail">
                                     <Form.Label>Email</Form.Label>
                                     <Form.Control required type="email" onChange={(e) => setEmail(e.target.value)} />
@@ -69,7 +69,7 @@ export default function Login() {
                                     />
                                 </Form.Group>
 
-                                <Button variant="primary" type="submit">
+                                <Button variant="primary" onClick={handleSubmit}>
                                     Enviar
                                 </Button>
                             </Form>
