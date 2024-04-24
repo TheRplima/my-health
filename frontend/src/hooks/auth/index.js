@@ -27,13 +27,13 @@ export const UserProvider = ({ children }) => {
             }
 
             if (keepLoggedIn) {
-                setCookies('token', response.data.authorisation.token, { maxAge: 60 * 60 * 24 * 7 });
-                setCookies('user', JSON.stringify(response.data.user), { maxAge: 60 * 60 * 24 * 7 });
-                setCookies('keepLoggedIn', true, { maxAge: 60 * 60 * 24 * 7 });
+                setCookies('token', response.data.authorisation.token, { maxAge: 60 * 60 * 24 * 7, secure: false });
+                setCookies('user', JSON.stringify(response.data.user), { maxAge: 60 * 60 * 24 * 7, secure: false });
+                setCookies('keepLoggedIn', true, { maxAge: 60 * 60 * 24 * 7, secure: false });
             }else {
-                setCookies('token', response.data.authorisation.token);
-                setCookies('user', JSON.stringify(response.data.user));
-                setCookies('keepLoggedIn', false);
+                setCookies('token', response.data.authorisation.token, {secure: false});
+                setCookies('user', JSON.stringify(response.data.user), {secure: false});
+                setCookies('keepLoggedIn', false, {secure: false});
             }
 
             //if on mobile use window.location
