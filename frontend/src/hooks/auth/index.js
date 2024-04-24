@@ -80,7 +80,7 @@ export const UserProvider = ({ children }) => {
 
     const checkToken = (token) => {
         const decodedJwt = parseJwt(token);
-
+        console.log(new Date(decodedJwt.exp * 1000).toLocaleString('pt-BR'));
         if (decodedJwt.exp * 1000 < Date.now()) {
             return false;
         }

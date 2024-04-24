@@ -17,10 +17,10 @@ async function getWaterIntakeContainer(token) {
   });
 }
 
-async function registerWaterIntakeContainer(amount, token) {
+async function registerWaterIntakeContainer(data, token) {
   apiPrivate(token);
 
-  return api.post('api/water-intake-container',{amount}).then(response => {
+  return api.post('api/water-intake-container',data).then(response => {
      
     return response.data
   }).catch(error => {
@@ -64,10 +64,10 @@ const useWaterIntakeContainerData = () => {
 
   const [waterIntakeContainerData] = useState(handleGetWaterIntakeContainer())
 
-  const handleRegisterWaterIntakeContainer = async (amount) => {
+  const handleRegisterWaterIntakeContainer = async (data) => {
     const token = cookies.token
 
-    registerWaterIntakeContainer(amount, token).then(data => {
+    registerWaterIntakeContainer(data, token).then(data => {
       handleGetWaterIntakeContainer(true)
     }).catch((error) => {
       console.log('Error', error.message);

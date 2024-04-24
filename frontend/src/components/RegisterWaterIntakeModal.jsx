@@ -8,6 +8,7 @@ import FormControlWaterIntakeContainerSelect from './FormControlWaterIntakeConta
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
+import RegisterWaterIntakeContainer from './RegisterWaterIntakeContainerModal';
 
 export default function RegisterWaterIntake(props) {
     const [show, setShow] = useState(false);
@@ -53,15 +54,21 @@ export default function RegisterWaterIntake(props) {
                 </Modal.Header>
                 <Modal.Body>
                     <Row>
-                        <Col md={10}>
-                            {(!visibilityControl) ? (
+                        {(!visibilityControl) ? (
+                            <Col md={9}>
                                 <FormControlWaterIntakeContainerSelect setAmount={props.setAmount} />
-                            ) : (
+                            </Col>
+                        ) : (
+                            <Col md={10}>
                                 <Form.Control required type="number" name="amount" placeholder="Quantidade de água ingerida em ml" onChange={e => props.setAmount(e.target.value)} value={props.amount} autoFocus={true} />
-                            )}
-                        </Col>
-                        <Col className='text-right'>
-                            <Button variant="warning" size={'sm'} title={btnTitle} onClick={handleChangeVisibilityControl}>{btnLabel}</Button>
+                            </Col>
+                        )}
+
+                        <Col className='text-right d-flex justify-content-between'>
+                            {(!visibilityControl) ? (
+                                <RegisterWaterIntakeContainer />
+                            ) : ('')}
+                            <Button variant="warning" title={btnTitle} onClick={handleChangeVisibilityControl}>{btnLabel}</Button>
                         </Col>
                     </Row>
                 </Modal.Body>
