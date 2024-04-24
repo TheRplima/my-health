@@ -25,7 +25,7 @@ return new class extends Migration
                 'martini-glass',
                 'mug-hot',
                 'beer-mug-empty',
-                'bottle-wine',
+                'wine-bottle',
                 'bottle-droplet'
             ])->default('glass-water');
             $table->boolean('active')->default(1);
