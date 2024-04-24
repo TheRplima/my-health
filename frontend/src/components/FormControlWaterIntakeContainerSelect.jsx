@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import Form from 'react-bootstrap/Form';
 import { useAuth } from "../hooks/auth";
 import useWaterIntakeContainerData from '../services/useWaterIntakeContainerData';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -12,7 +11,14 @@ function FormControlWaterIntakeContainerSelect(props) {
     const { cookies } = useAuth();
     const [waterIntakeContainers, setWaterIntakeContainers] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [icon, setIcon] = useState('');
     library.add(fas);
+
+    const handleOnSelect = (evtKey) => {
+        const container = waterIntakeContainers.find(container => container.size === parseInt(evtKey));
+        setIcon(container.icon);
+        props.setAmount(evtKey);
+    }
 
     useEffect(() => {
         async function loadStorageData() {
@@ -33,26 +39,27 @@ function FormControlWaterIntakeContainerSelect(props) {
     return (
         <>
 
-            <Dropdown onSelect={(evtKey) => props.setAmount(evtKey)} className="d-grid gap-2">
+            <Dropdown onSelect={(evtKey) => handleOnSelect(evtKey)} className="d-grid gap-2">
                 <Dropdown.Toggle variant={'outline-secondary'} bg={'light'}>
-                    Escolha um recipiente
+                    Escolha um recipiente {' '}
+                    {icon !== '' && <FontAwesomeIcon icon={['fas', icon]} size='lg' />}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                {(!loading) ? (
-                    <>
-                        {waterIntakeContainers?.length > 0 ? (
-                            waterIntakeContainers.map((waterIntakeContainer, index) => (
-                                <Dropdown.Item key={waterIntakeContainer.size} eventKey={waterIntakeContainer.size}>
-                                    <FontAwesomeIcon icon={['fas',waterIntakeContainer.icon]} /> {waterIntakeContainer.name}
-                                </Dropdown.Item>
-                            ))
-                        ) : (
-                            <Dropdown.Item>Nenhum registro encontrado</Dropdown.Item>
-                        )}
-                    </>
-                ) : (
-                    <Dropdown.Item>Loading...</Dropdown.Item>
-                )}
+                    {(!loading) ? (
+                        <>
+                            {waterIntakeContainers?.length > 0 ? (
+                                waterIntakeContainers.map((waterIntakeContainer, index) => (
+                                    <Dropdown.Item key={waterIntakeContainer.size} eventKey={waterIntakeContainer.size}>
+                                        <FontAwesomeIcon icon={['fas', waterIntakeContainer.icon]} /> {waterIntakeContainer.name}
+                                    </Dropdown.Item>
+                                ))
+                            ) : (
+                                <Dropdown.Item>Nenhum registro encontrado</Dropdown.Item>
+                            )}
+                        </>
+                    ) : (
+                        <Dropdown.Item>Loading...</Dropdown.Item>
+                    )}
                 </Dropdown.Menu>
             </Dropdown>
         </>
