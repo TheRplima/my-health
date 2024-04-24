@@ -17,9 +17,12 @@ export default function Login() {
     const { login, cookies } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        login({ email, password, keepLoggedIn })
+    const handleSubmit = () => {
+        login({ email, password, keepLoggedIn }).then(() => {
+            alert('Login efetuado com sucesso!');
+        }).catch((error) => {
+            alert(error);
+        });
     };
 
     useEffect(() => {
