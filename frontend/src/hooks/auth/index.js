@@ -36,7 +36,9 @@ export const UserProvider = ({ children }) => {
                 setCookies('keepLoggedIn', false);
             }
 
-            navigate(process.env.REACT_APP_HOME_PAGE);
+            //if on mobile use window.location
+            window.location.href = process.env.REACT_APP_HOME_PAGE;
+            
         }).catch(error => {
             console.log(error);
             alert('Erro ao realizar login: ' + error.response.data.message);
