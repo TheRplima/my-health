@@ -25,6 +25,8 @@ class WaterIntakeController extends Controller
         $initialDate = isset($data['initial_date']) && $data['initial_date'] ? $data['initial_date'] : null;
         $finalDate = isset($data['final_date']) && $data['final_date'] ? $data['final_date'] : null;
         $amount = isset($data['amount']) && $data['amount'] ? $data['amount'] : null;
+        $page = isset($data['page']) && $data['page'] ? $data['page'] : 1;
+        $perPage = isset($data['per_page']) && $data['per_page'] ? $data['per_page'] : 10;
 
         $qb = auth()->user()->WaterIntake()
             ->when($initialDate, function ($query) use ($initialDate) {
@@ -37,7 +39,7 @@ class WaterIntakeController extends Controller
                 return $query->where('amount', $amount);
             });
 
-        $waterIntakes = $qb->paginate(10);
+        $waterIntakes = $qb->paginate($perPage);
         $totalAmount = $qb->sum('amount');
 
         return response()->json([
