@@ -24,15 +24,30 @@ class WaterIntakeController extends Controller
         $data = $request->validated();
         $initialDate = isset($data['initial_date']) && $data['initial_date'] ? $data['initial_date'] : null;
         $finalDate = isset($data['final_date']) && $data['final_date'] ? $data['final_date'] : null;
+        $amount = isset($data['amount']) && $data['amount'] ? $data['amount'] : null;
         if ($initialDate && $finalDate) {
             $initialDate = Carbon::createFromFormat('Y-m-d', $initialDate);
             $finalDate = Carbon::createFromFormat('Y-m-d', $finalDate);
-            $waterIntakes = auth()->user()->WaterIntake()
-                ->whereDate('created_at', ">=", $initialDate)
-                ->whereDate('created_at', "<=", $finalDate)
-                ->get();
+            if ($amount) {
+                $waterIntakes = auth()->user()->WaterIntake()
+                    ->whereDate('created_at', ">=", $initialDate)
+                    ->whereDate('created_at', "<=", $finalDate)
+                    ->where('amount', $amount)
+                    ->get();
+            } else {
+                $waterIntakes = auth()->user()->WaterIntake()
+                    ->whereDate('created_at', ">=", $initialDate)
+                    ->whereDate('created_at', "<=", $finalDate)
+                    ->get();
+            }
         }else{
-            $waterIntakes = auth()->user()->WaterIntake()->get();
+            if ($amount) {
+                $waterIntakes = auth()->user()->WaterIntake()
+                    ->where('amount', $amount)
+                    ->get();
+            } else {
+                $waterIntakes = auth()->user()->WaterIntake()->get();
+            }
         }
 
         $totalAmount = 0;

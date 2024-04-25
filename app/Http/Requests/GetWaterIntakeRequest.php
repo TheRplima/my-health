@@ -24,6 +24,7 @@ class GetWaterIntakeRequest extends FormRequest
         return [
             'initial_date' => ['nullable', 'date', 'required_with:final_date', 'filled'],
             'final_date' => ['nullable', 'date', 'required_with:initial_date', 'filled', 'after_or_equal:initial_date'],
+            'amount' => ['nullable', 'numeric'],
             'date' => ['nullable', 'date']
         ];
     }
@@ -38,6 +39,7 @@ class GetWaterIntakeRequest extends FormRequest
             'final_date.required_with' => 'The final date field is required when initial date is present.',
             'final_date.filled' => 'The final date field must not be empty.',
             'final_date.after_or_equal' => 'The final date must be a date after or equal to initial date.',
+            'amount.numeric' => 'The amount field must be a number.',
             'date.date' => 'The date field must be a valid date.'
         ];
     }
