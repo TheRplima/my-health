@@ -25,35 +25,20 @@ class WaterIntakeController extends Controller
         $initialDate = isset($data['initial_date']) && $data['initial_date'] ? $data['initial_date'] : null;
         $finalDate = isset($data['final_date']) && $data['final_date'] ? $data['final_date'] : null;
         $amount = isset($data['amount']) && $data['amount'] ? $data['amount'] : null;
-        if ($initialDate && $finalDate) {
-            $initialDate = Carbon::createFromFormat('Y-m-d', $initialDate);
-            $finalDate = Carbon::createFromFormat('Y-m-d', $finalDate);
-            if ($amount) {
-                $waterIntakes = auth()->user()->WaterIntake()
-                    ->whereDate('created_at', ">=", $initialDate)
-                    ->whereDate('created_at', "<=", $finalDate)
-                    ->where('amount', $amount)
-                    ->get();
-            } else {
-                $waterIntakes = auth()->user()->WaterIntake()
-                    ->whereDate('created_at', ">=", $initialDate)
-                    ->whereDate('created_at', "<=", $finalDate)
-                    ->get();
-            }
-        }else{
-            if ($amount) {
-                $waterIntakes = auth()->user()->WaterIntake()
-                    ->where('amount', $amount)
-                    ->get();
-            } else {
-                $waterIntakes = auth()->user()->WaterIntake()->get();
-            }
-        }
 
-        $totalAmount = 0;
-        foreach ($waterIntakes as $waterIntake) {
-            $totalAmount += $waterIntake->amount;
-        }
+        $qb = auth()->user()->WaterIntake()
+            ->when($initialDate, function ($query) use ($initialDate) {
+                return $query->whereDate('created_at', '>=', $initialDate);
+            })
+            ->when($finalDate, function ($query) use ($finalDate) {
+                return $query->whereDate('created_at', '<=', $finalDate);
+            })
+            ->when($amount, function ($query) use ($amount) {
+                return $query->where('amount', $amount);
+            });
+
+        $waterIntakes = $qb->paginate(10);
+        $totalAmount = $qb->sum('amount');
 
         return response()->json([
             'status' => 'success',
