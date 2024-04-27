@@ -39,13 +39,30 @@ class WaterIntakeController extends Controller
                 return $query->where('amount', $amount);
             });
 
-        $waterIntakes = $qb->paginate($perPage);
+        $chartQb = $qb;
         $totalAmount = $qb->sum('amount');
+        $waterIntakes = $qb->paginate($perPage);
+
+        $waterIntakeChartData = [];
+        $waterIntakeChartData = $chartQb->selectRaw('DATE(created_at) as date, SUM(amount) as total_amount')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    Carbon::parse($item->date)->format('d/m/Y'),
+                    (float)$item->total_amount,
+                    auth()->user()->daily_water_amount
+                ];
+            });
+
+        $waterIntakeChartData = array_merge([["Dia", "Consumo de água", "Meta"]], $waterIntakeChartData->toArray());
 
         return response()->json([
             'status' => 'success',
             'total_amount' => $totalAmount,
             'water_intake_list' => $waterIntakes,
+            'water_intake_chart' => $waterIntakeChartData
         ]);
     }
 
