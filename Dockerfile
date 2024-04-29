@@ -89,5 +89,7 @@ RUN echo "* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run 
 
 RUN crontab /etc/cron.d/laravel-schedule
 
+RUN "php artisan storage:link"
+
 CMD ["sh", "echo \"$(printenv | grep -v \" \\|\\\"\" )\" > .env"]
 CMD ["sh", "/start.sh"]
