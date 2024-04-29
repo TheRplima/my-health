@@ -32,12 +32,12 @@ class WeightControlController extends Controller
                 ->whereDate('created_at', ">=", $initialDate)
                 ->whereDate('created_at', "<=", $finalDate)
                 ->get();
-        }else{
-            if ($data['max']) {
+        } else {
+            if (isset($data['max']) && $data['max']) {
                 $user = auth()->user();
-                $weightControls = WeightControl::where('user_id',$user->id)->orderBy('created_at','desc')->take($data['max']);
+                $weightControls = WeightControl::where('user_id', $user->id)->orderBy('created_at', 'desc')->take($data['max']);
                 $weightControls = array_reverse($weightControls->get()->toArray());
-            }else{
+            } else {
                 $weightControls = auth()->user()->weightControl()->get();
             }
         }
@@ -84,8 +84,8 @@ class WeightControlController extends Controller
         $weightControl->delete();
 
         $user = Auth::user();
-        $latestWeight = WeightControl::where('user_id',$user->id)->orderBy('created_at','desc')->first();
-        if ($latestWeight != null){
+        $latestWeight = WeightControl::where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
+        if ($latestWeight != null) {
             $user->weight = $latestWeight->weight;
             $user->save();
         }
