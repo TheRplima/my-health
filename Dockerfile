@@ -85,7 +85,7 @@ EXPOSE 80
 # Install cron
 RUN apt install -y cron
 
-RUN echo "* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1 " >> /etc/cron.d/laravel-schedule
+RUN echo "* * * * * cd /var/www/html && php artisan schedule:run >> /var/www/html/storage/logs/cron.log 2>&1 " >> /etc/cron.d/laravel-schedule
 
 RUN crontab /etc/cron.d/laravel-schedule
 
