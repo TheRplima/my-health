@@ -13,6 +13,7 @@ use Illuminate\Http\Response;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Ramsey\Uuid\Uuid;
 
 class UserController extends Controller
 {
@@ -28,12 +29,12 @@ class UserController extends Controller
 
         $data = $request->validated();
         if ($request['image']) {
-            $extension  =explode(':', substr($request['image'], 0, strpos($request['image'], ';')));
-            $extension = explode('/', $extension[count($extension)-1])[1];
+            $extension  = explode(':', substr($request['image'], 0, strpos($request['image'], ';')));
+            $extension = explode('/', $extension[count($extension) - 1])[1];
             $format = $extension == 'jpeg' ? 'jpg' : $extension;
-            $name = md5($request['name'].Carbon::now()).'.'.$format;
-            $filePath = 'images/users/'.$name;
-            $image = str_replace(' ', '+', str_replace(substr($request['image'], 0, strpos($request['image'], ',')+1), '', $request['image']));
+            $name = md5($request['name'] . Carbon::now()) . '.' . $format;
+            $filePath = 'images/users/' . $name;
+            $image = str_replace(' ', '+', str_replace(substr($request['image'], 0, strpos($request['image'], ',') + 1), '', $request['image']));
             Storage::disk('public')->put($filePath, base64_decode($image), 'public');
             $data['image'] = $filePath;
         }
@@ -56,7 +57,7 @@ class UserController extends Controller
     {
         if (!$id) {
             $user = Auth::user();
-        }else{
+        } else {
             $user = User::findOrFail($id);
         }
 
@@ -68,12 +69,12 @@ class UserController extends Controller
         $data = $request->validated();
         if ($request['image']) {
             Storage::disk('public')->delete($user->image);
-            $extension  =explode(':', substr($request['image'], 0, strpos($request['image'], ';')));
-            $extension = explode('/', $extension[count($extension)-1])[1];
+            $extension  = explode(':', substr($request['image'], 0, strpos($request['image'], ';')));
+            $extension = explode('/', $extension[count($extension) - 1])[1];
             $format = $extension == 'jpeg' ? 'jpg' : $extension;
-            $name = md5($user->name.Carbon::now()).'.'.$format;
-            $filePath = 'images/users/'.$name;
-            $image = str_replace(' ', '+', str_replace(substr($request['image'], 0, strpos($request['image'], ',')+1), '', $request['image']));
+            $name = md5($user->name . Carbon::now()) . '.' . $format;
+            $filePath = 'images/users/' . $name;
+            $image = str_replace(' ', '+', str_replace(substr($request['image'], 0, strpos($request['image'], ',') + 1), '', $request['image']));
             Storage::disk('public')->put($filePath, base64_decode($image), 'public');
             $data['image'] = $filePath;
         }
@@ -107,6 +108,33 @@ class UserController extends Controller
             'status' => 'success',
             'message' => 'User deleted successfully',
             'user' => $user,
+        ]);
+    }
+
+    //fuction to generate telegram deeplink to subscribe user to receive notify via telegram
+    public function generateTelegramDeeplink(User $user): JsonResponse
+    {
+        $user->telegram_user_deeplink = Uuid::uuid4();
+        $user->save();
+
+        $deeplink = 'https://t.me/' . config('services.telegram-bot-api.bot_name') . '?start=' . $user->telegram_user_deeplink;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Telegram deeplink generated successfully',
+            'deeplink' => $deeplink,
+        ]);
+    }
+
+    public function subscribeUserToTelegramNotify(User $user): JsonResponse
+    {
+        $user->telegram_notify = true;
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User subscribed to telegram notifications',
+            'user' => (new UserResource($user))->toArray(request()),
         ]);
     }
 }

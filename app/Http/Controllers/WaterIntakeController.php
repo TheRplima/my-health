@@ -5,15 +5,20 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GetWaterIntakeRequest;
 use App\Http\Requests\StoreWaterIntakeRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Models\WaterIntake;
+use App\Services\WaterIntakeService;
 use Carbon\Carbon;
 
 class WaterIntakeController extends Controller
 {
 
-    public function __construct()
+    private $waterIntakeService;
+
+    public function __construct(WaterIntakeService $waterIntakeService)
     {
         $this->middleware('auth:api');
+        $this->waterIntakeService = $waterIntakeService;
     }
 
     /**
@@ -73,13 +78,13 @@ class WaterIntakeController extends Controller
     {
         $data = $request->validated();
         $data['user_id'] = auth()->user()->id ?? $request->user_id;
-        $waterIntake = WaterIntake::create($data);
+        $waterIntake = $this->waterIntakeService->create($data);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Water Intake created successfully',
             'water_intake' => $waterIntake,
-        ]);
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -87,14 +92,13 @@ class WaterIntakeController extends Controller
      */
     public function destroy($id)
     {
-        $waterIntake = WaterIntake::find($id);
-        $waterIntake->delete();
+        $waterIntake = $this->waterIntakeService->delete($id);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Water Intake deleted successfully',
             'water_intake' => $waterIntake,
-        ]);
+        ], Response::HTTP_OK);
     }
 
     public function getWaterIntakesByDay(GetWaterIntakeRequest $request)
@@ -102,14 +106,10 @@ class WaterIntakeController extends Controller
         $data = $request->validated();
 
         $date = isset($data['date']) && $data['date'] ? $data['date'] : now()->toDateString();
-        $waterIntakes = auth()->user()->WaterIntake()
-            ->whereDate('created_at', $date)
-            ->get();
+        $userId = auth()->user()->id;
 
-        $totalAmount = 0;
-        foreach ($waterIntakes as $waterIntake) {
-            $totalAmount += $waterIntake->amount;
-        }
+        $waterIntakes = $this->waterIntakeService->getWaterIntakesByDay($userId, $date);
+        $totalAmount = $waterIntakes->sum('amount');
 
         return response()->json([
             'status' => 'success',
