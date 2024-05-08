@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Telegram\TelegramMessage;
 use NotificationChannels\Telegram\TelegramUpdates;
@@ -39,36 +40,43 @@ class TelegramBotCallback implements ShouldQueue
             ])
             ->get();
 
-        if ($updates['ok']) {
-            // Chat ID
-            $callback = $updates['result'][count($updates['result']) - 1]['callback_query'] ?? null;
-            if ($callback) {
-                $chatId = $callback['message']['chat']['id'];
-                $data = $callback['data'];
-                $model = explode('_', $data)[0];
-                $function = explode('_', $data)[1];
-                $field = explode(':', explode('_', $data)[2])[0];
-                $value = explode(':', explode('_', $data)[2])[1];
+        if ($updates['ok'] && count($updates['result']) > 0) {
+            foreach ($updates['result'] as $update) {
+                $updateId = $update['update_id'];
+                $callback = $update['callback_query'];
+                $latestUpdateIds = Cache::get('lastest_update_ids');
 
-                $user = User::where('telegram_user_id', $chatId)->first();
-                if ($user) {
-                    if (in_array($model, $this->allowedModels)) {
-                        $model = '\\App\\Models\\' . ucfirst($model);
+                if ($callback && (($latestUpdateIds !== null && !in_array($updateId,  $latestUpdateIds)) || $latestUpdateIds === null)) {
+                    $latestUpdateIds[] = $updateId;
+                    Cache::put('lastest_update_ids', $latestUpdateIds, 60 * 24 * 7);
 
-                        $payload = [
-                            'user_id' => $user->id,
-                            $field => $value
-                        ];
+                    $chatId = $callback['message']['chat']['id'];
+                    $data = $callback['data'];
+                    $model = explode('_', $data)[0];
+                    $function = explode('_', $data)[1];
+                    $field = explode(':', explode('_', $data)[2])[0];
+                    $value = explode(':', explode('_', $data)[2])[1];
 
-                        $model::$function($payload);
+                    $user = User::where('telegram_user_id', $chatId)->first();
+                    if ($user) {
+                        if (in_array($model, $this->allowedModels)) {
+                            $model = '\\App\\Models\\' . ucfirst($model);
 
-                        //return back a message to user telegram chat saying that the operation was successful
-                        $message = TelegramMessage::create()
-                            ->to($user->telegram_user_id)
-                            ->content('Registro realizado com sucesso!');
+                            $payload = [
+                                'user_id' => $user->id,
+                                $field => $value
+                            ];
 
-                        $message->send();
-                        Log::info('User with ID: ' . $user->id . ' has updated ' . $model . ' with ' . $field . ' = ' . $value);
+                            $model::$function($payload);
+
+                            //return back a message to user telegram chat saying that the operation was successful
+                            $message = TelegramMessage::create()
+                                ->to($user->telegram_user_id)
+                                ->content('Registro realizado com sucesso!');
+
+                            $message->send();
+                            Log::info('User with ID: ' . $user->id . ' has updated ' . $model . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+                        }
                     }
                 }
             }

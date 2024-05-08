@@ -42,7 +42,7 @@ class SubscribeToTelegramNotifications implements ShouldQueue
             $message = $updates['result'][count($updates['result']) - 1]['message'] ?? null;
             if ($message) {
                 // check if text contains /start command
-                if (strpos($message['text'], '/start') !== false) {
+                if (strpos($message['text'], '/start ') !== false) {
                     // Extract the deeplink from the message
                     $telegramUserDeeplink = explode(' ', $message['text'])[1];
                     $chatId = $message['chat']['id'];
