@@ -2,15 +2,16 @@
 
 namespace App\Notifications;
 
+use Asantibanez\LaravelSubscribableNotifications\Contracts\SubscribableNotification;
+use Asantibanez\LaravelSubscribableNotifications\Traits\DispatchesToSubscribers;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Telegram\TelegramMessage;
 
-class WaterIntakeReminder extends Notification
+class WaterIntakeReminderTelegram extends Notification implements SubscribableNotification
 {
     use Queueable;
+    use DispatchesToSubscribers;
     private $user;
 
     /**
@@ -21,6 +22,11 @@ class WaterIntakeReminder extends Notification
         $this->user = $user;
     }
 
+    public static function subscribableNotificationType(): string
+    {
+        return 'water-intake-reminder-telegram';
+    }
+
     /**
      * Get the notification's delivery channels.
      *
@@ -28,37 +34,9 @@ class WaterIntakeReminder extends Notification
      */
     public function via(object $notifiable): array
     {
-        $via = ['database'];
-        if ($this->user->telegram_user_id !== null) {
-            $via[] = 'telegram';
-        }
+        $via = ['telegram'];
 
         return $via;
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject('Hora de beber água!')
-            ->line($this->user->name . ', faz pelo menos uma hora que você não bebe água! Não se esqueça de se manter hidratado!');
-        // ->action('Notification Action', url('/'))
-        // ->line('Thank you for using our application!');
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'title' => 'Hora de beber água!',
-            'body'  => $this->user->name . ', faz pelo menos uma hora que você não bebe água! Não se esqueça de se manter hidratado!',
-        ];
     }
 
     /**

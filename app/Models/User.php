@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Asantibanez\LaravelSubscribableNotifications\Traits\HasNotificationSubscriptions;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,14 +11,14 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasNotificationSubscriptions;
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password','phone','gender','dob','height','weight','daily_water_amount','activity_level','active','image'
+        'name', 'email', 'password', 'phone', 'gender', 'dob', 'height', 'weight', 'daily_water_amount', 'activity_level', 'active', 'image'
     ];
 
     /**
