@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Telegram\TelegramMessage;
 use NotificationChannels\Telegram\TelegramUpdates;
@@ -52,15 +53,15 @@ class TelegramBotCallback implements ShouldQueue
 
                     $chatId = $callback['message']['chat']['id'];
                     $data = $callback['data'];
-                    $model = explode('_', $data)[0];
+                    $modelName = explode('_', $data)[0];
                     $function = explode('_', $data)[1];
                     $field = explode(':', explode('_', $data)[2])[0];
                     $value = explode(':', explode('_', $data)[2])[1];
 
                     $user = User::where('telegram_user_id', $chatId)->first();
                     if ($user) {
-                        if (in_array($model, $this->allowedModels)) {
-                            $model = '\\App\\Models\\' . ucfirst($model);
+                        if (in_array(ucfirst($modelName), $this->allowedModels)) {
+                            $model = '\\App\\Models\\' . ucfirst($modelName);
 
                             $payload = [
                                 'user_id' => $user->id,
@@ -75,7 +76,23 @@ class TelegramBotCallback implements ShouldQueue
                                 ->content('Registro realizado com sucesso!');
 
                             $message->send();
-                            Log::info('User with ID: ' . $user->id . ' has updated ' . $model . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+
+                            #TODO Create a hook system to handle this
+                            if (ucfirst($modelName) == 'WaterIntake' && $user->id === 1) {
+                                //fazer requisição http post para outro bot do telegram
+                                $url = 'https://api.telegram.org/bot5837283265:AAHX3Pqc5Y_sBDv9A8efjxdYxQ9zbqe6Ct8/sendMessage';
+                                $data = [
+                                    'chat_id' => "-1001961157623",
+                                    'text' => '/drinkWater ' . $value
+                                ];
+
+                                $response = Http::post($url, $data);
+                                if ($response->status() != 200) {
+                                    Log::error('Falha ao enviar mensagem callback para atualizar ingestão de água no Home Assistant. Status code: ' . $response->status() . ' - Response: ' . $response->body());
+                                }
+                            }
+
+                            Log::info('User with ID: ' . $user->id . ' has updated ' . $modelName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
                         }
                     }
                 }
