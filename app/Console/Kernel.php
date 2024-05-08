@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->job(new SubscribeToTelegramNotifications())->everyMinute()->name('subscribe-telegram-notifications');
         $schedule->job(new WaterIntakeReminder())->everyMinute()->name('water-intake-reminder');
-        $schedule->job(new TelegramBotCallback(app(WaterIntakeController::class)))->everySecond()->name('telegram-bot-callback');
+        $schedule->job(new TelegramBotCallback(app(WaterIntakeController::class)))->everyFiveSeconds()->name('telegram-bot-callback');
     }
 
     /**
