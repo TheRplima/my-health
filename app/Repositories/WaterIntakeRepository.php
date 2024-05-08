@@ -27,16 +27,19 @@ class WaterIntakeRepository
         return false;
     }
 
-    public function delete(int $id): bool
+    //função para deletar um registro de consumo de água, deve retornar o registro deletado ou false em caso de erro
+    public function delete(int $id): ?WaterIntake
     {
         $waterIntake = $this->find($id);
 
         if ($waterIntake) {
-            return $waterIntake->delete();
+            $waterIntake->delete();
+            return $waterIntake;
         }
 
-        return false;
+        return null;
     }
+
 
     public function getWaterIntakesByDay(int $userId, string $date)
     {

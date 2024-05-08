@@ -9,7 +9,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Telegram\TelegramMessage;
 use NotificationChannels\Telegram\TelegramUpdates;
@@ -18,7 +17,7 @@ class TelegramBotCallback implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $allowedModels = ['WaterIntake', 'WeightControl'];
+    private $allowedServices = ['WaterIntake', 'WeightControl'];
 
     /**
      * Create a new job instance.
@@ -53,46 +52,37 @@ class TelegramBotCallback implements ShouldQueue
 
                     $chatId = $callback['message']['chat']['id'];
                     $data = $callback['data'];
-                    $modelName = explode('_', $data)[0];
+                    $serviceName = explode('_', $data)[0];
                     $function = explode('_', $data)[1];
                     $field = explode(':', explode('_', $data)[2])[0];
                     $value = explode(':', explode('_', $data)[2])[1];
 
                     $user = User::where('telegram_user_id', $chatId)->first();
                     if ($user) {
-                        if (in_array(ucfirst($modelName), $this->allowedModels)) {
-                            $model = '\\App\\Models\\' . ucfirst($modelName);
+                        if (in_array(ucfirst($serviceName), $this->allowedServices)) {
+                            $service = '\\App\\Services\\' . ucfirst($serviceName) . 'Service';
+                            $repository = '\\App\\Repositories\\' . ucfirst($serviceName) . 'Repository';
 
                             $payload = [
                                 'user_id' => $user->id,
                                 $field => $value
                             ];
 
-                            $model::$function($payload);
+                            $serviceInstance = new $service(new $repository);
+                            $object = $serviceInstance->$function($payload);
 
-                            //return back a message to user telegram chat saying that the operation was successful
-                            $message = TelegramMessage::create()
-                                ->to($user->telegram_user_id)
-                                ->content('Registro realizado com sucesso!');
+                            if ($object) {
+                                //return back a message to user telegram chat saying that the operation was successful
+                                $message = TelegramMessage::create()
+                                    ->to($user->telegram_user_id)
+                                    ->content('Registro realizado com sucesso!');
 
-                            $message->send();
+                                $message->send();
 
-                            #TODO Create a hook system to handle this
-                            if (ucfirst($modelName) == 'WaterIntake' && $user->id === 1) {
-                                //fazer requisição http post para outro bot do telegram
-                                $url = 'https://api.telegram.org/bot' . env('TELEGRAM_BOT_HOOK_RPLIMA_TOKEN') . '/sendMessage';
-                                $data = [
-                                    'chat_id' => env('TELEGRAM_BOT_HOOK_RPLIMA_CHATID'),
-                                    'text' => '/drinkWater ' . $value
-                                ];
-
-                                $response = Http::post($url, $data);
-                                if ($response->status() != 200) {
-                                    Log::error('Falha ao enviar mensagem callback para atualizar ingestão de água no Home Assistant. Status code: ' . $response->status() . ' - Response: ' . $response->body());
-                                }
+                                Log::info('User with ID: ' . $user->id . ' has updated ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+                            } else {
+                                Log::error('User with ID: ' . $user->id . ' has tried to update ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
                             }
-
-                            Log::info('User with ID: ' . $user->id . ' has updated ' . $modelName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
                         }
                     }
                 }

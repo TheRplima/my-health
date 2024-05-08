@@ -84,7 +84,7 @@ class WaterIntakeController extends Controller
             'status' => 'success',
             'message' => 'Water Intake created successfully',
             'water_intake' => $waterIntake,
-        ], Response::HTTP_CREATED);
+        ]);
     }
 
     /**
@@ -94,11 +94,18 @@ class WaterIntakeController extends Controller
     {
         $waterIntake = $this->waterIntakeService->delete($id);
 
+        if ($waterIntake) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Water Intake deleted successfully',
+                'water_intake' => $waterIntake,
+            ]);
+        }
+
         return response()->json([
-            'status' => 'success',
-            'message' => 'Water Intake deleted successfully',
-            'water_intake' => $waterIntake,
-        ], Response::HTTP_OK);
+            'status' => 'error',
+            'message' => 'Water Intake not found',
+        ], Response::HTTP_NOT_FOUND);
     }
 
     public function getWaterIntakesByDay(GetWaterIntakeRequest $request)

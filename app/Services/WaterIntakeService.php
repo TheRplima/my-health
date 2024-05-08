@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\FailedAction;
+use App\Hooks\SendCallbackQueryHomeAssistant;
 use App\Repositories\WaterIntakeRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
@@ -19,21 +20,23 @@ class WaterIntakeService
     public function create(array $data)
     {
         try {
-            DB::beginTransaction();
             $waterIntake = $this->waterIntakeRepository->create($data);
-            DB::commit();
+
+            if ($data['user_id'] == 1) {
+                $sendCallbackQueryHomeAssistant = new SendCallbackQueryHomeAssistant();
+                $sendCallbackQueryHomeAssistant(['amount' => $data['amount']]);
+            }
+
             return $waterIntake;
         } catch (\Exception $e) {
-            throw new FailedAction('Falha ao registrar o consumo de água', Response::HTTP_BAD_REQUEST);
+            throw new FailedAction('Falha ao registrar o consumo de água. Erro: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 
     public function update(int $id, array $data)
     {
         try {
-            DB::beginTransaction();
             $waterIntake = $this->waterIntakeRepository->update($id, $data);
-            DB::commit();
             return $waterIntake;
         } catch (\Exception $e) {
             throw new FailedAction('Falha ao atualizar o consumo de água', Response::HTTP_BAD_REQUEST);
@@ -43,12 +46,20 @@ class WaterIntakeService
     public function delete(int $id)
     {
         try {
-            DB::beginTransaction();
             $waterIntake = $this->waterIntakeRepository->delete($id);
-            DB::commit();
-            return $waterIntake;
+
+            if ($waterIntake) {
+                if ($waterIntake->user_id == 1) {
+                    $sendCallbackQueryHomeAssistant = new SendCallbackQueryHomeAssistant();
+                    $sendCallbackQueryHomeAssistant(['amount' => ($waterIntake->amount * -1)]);
+                }
+
+                return $waterIntake;
+            }
+
+            return false;
         } catch (\Exception $e) {
-            throw new FailedAction('Falha ao excluir o consumo de água', Response::HTTP_BAD_REQUEST);
+            throw new FailedAction('Falha ao excluir o consumo de água Erro: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 
