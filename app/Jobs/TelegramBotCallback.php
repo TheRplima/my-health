@@ -80,9 +80,9 @@ class TelegramBotCallback implements ShouldQueue
                             #TODO Create a hook system to handle this
                             if (ucfirst($modelName) == 'WaterIntake' && $user->id === 1) {
                                 //fazer requisição http post para outro bot do telegram
-                                $url = 'https://api.telegram.org/bot5837283265:AAHX3Pqc5Y_sBDv9A8efjxdYxQ9zbqe6Ct8/sendMessage';
+                                $url = 'https://api.telegram.org/bot' . env('TELEGRAM_BOT_HOOK_RPLIMA_TOKEN') . '/sendMessage';
                                 $data = [
-                                    'chat_id' => "-1001961157623",
+                                    'chat_id' => env('TELEGRAM_BOT_HOOK_RPLIMA_CHATID'),
                                     'text' => '/drinkWater ' . $value
                                 ];
 
