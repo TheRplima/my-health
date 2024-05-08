@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use App\Models\User;
+use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Uuid;
 
@@ -126,15 +128,52 @@ class UserController extends Controller
         ]);
     }
 
-    public function subscribeUserToTelegramNotify(User $user): JsonResponse
+    public function getNotificationChannelsList(): JsonResponse
     {
-        $user->telegram_notify = true;
-        $user->save();
+        $subscribeManagement = new NotificationSubscriptionManager();
+        $channels = $subscribeManagement->subscribableNotifications();
+
+        $list = [];
+        foreach ($channels as $channel) {
+            $list[] = [
+                'type' => explode('\\', $channel)[count(explode('\\', $channel)) - 1],
+                'description' => $channel::subscribableNotificationTypeDescription(),
+            ];
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'User subscribed to telegram notifications',
-            'user' => (new UserResource($user))->toArray(request()),
+            'channels' => $list,
+        ]);
+    }
+
+    public function subscribeNotificationChannel(Request $request, User $user, $channel): JsonResponse
+    {
+        //check if channel contains App\\Notifications\\, if not add it
+        if (!str_contains($channel, 'App\\Notifications\\')) {
+            $channel = 'App\\Notifications\\' . $channel;
+        }
+        $subscribeManagement = new NotificationSubscriptionManager();
+        $subscribeManagement->subscribe($user, $channel);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User subscribed to ' . $channel,
+        ]);
+    }
+
+    public function unsubscribeNotificationChannel(User $user, $channel): JsonResponse
+    {
+        //check if channel contains App\\Notifications\\, if not add it
+        if (!str_contains($channel, 'App\\Notifications\\')) {
+            $channel = 'App\\Notifications\\' . $channel;
+        }
+        $subscribeManagement = new NotificationSubscriptionManager();
+        $subscribeManagement->unsubscribe($user, $channel);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User unsubscribed from ' . $channel,
         ]);
     }
 }

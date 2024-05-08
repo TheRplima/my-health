@@ -33,7 +33,10 @@ Route::controller(UserController::class)->group(function () {
     Route::get('user/{id?}', [UserController::class, 'show'])->name('user.show');
     Route::match(['put', 'patch'], 'user/{user}', [UserController::class, 'update'])->name('user.update');
     Route::delete('user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
-    Route::post('subscribe-telegram-notifications/{user}', [UserController::class, 'generateTelegramDeeplink'])->name('user.telegram.subscribe');
+    Route::post('generate-telegram-deeplink/{user}', [UserController::class, 'generateTelegramDeeplink'])->name('user.telegram.generate-deeplink');
+    Route::get('notification-channels-list', [UserController::class, 'getNotificationChannelsList'])->name('user.notification-channels-list');
+    Route::post('subscribe-notification-channel/{user}/{channel}', [UserController::class, 'subscribeNotificationChannel'])->name('user.subscribe-notification-channel');
+    Route::post('unsubscribe-notification-channel/{user}/{channel}', [UserController::class, 'unsubscribeNotificationChannel'])->name('user.unsubscribe-notification-channel');
 });
 
 Route::controller(WaterIntakeController::class)->group(function () {
@@ -62,38 +65,4 @@ Route::controller(NotificationController::class)->group(function () {
     Route::patch('/mark-notification/{id}', 'markNotification');
     Route::patch('/mark-notifications', 'markAllNotifications');
     Route::delete('/notification/{id}', 'destroy');
-});
-
-Route::post('/bot/getupdates', function () {
-
-
-    // Response is an array of updates.
-    $updates = TelegramUpdates::create()
-        // (Optional). Get's the latest update. NOTE: All previous updates will be forgotten using this method.
-        ->latest()
-
-        // (Optional). Limit to 2 updates (By default, updates starting with the earliest unconfirmed update are returned).
-        // ->limit(2)
-
-        // (Optional). Add more params to the request.
-        ->options([
-            'timeout' => 0,
-            'allowed_updates' => "callback_query"
-        ])
-        ->get();
-
-    if ($updates['ok']) {
-        // Chat ID
-        $chatId = $updates['result'][0]['callback_query']['message']['chat']['id'];
-    }
-    // $telegram = new TelegramUpdates();
-    // $updates = $telegram->get();
-    // foreach ($updates['result'] as $update) {
-    //     if (isset($update['callback_query'])) {
-    //         $from = $update['callback_query']['from'];
-    //         $data = explode('_', $update['callback_query']['data']);
-    //         dd($from, $data);
-    //     }
-    // }
-    return (json_encode($updates));
 });

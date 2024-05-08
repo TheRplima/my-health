@@ -29,6 +29,11 @@ class WaterIntakeReminderDatabase extends Notification implements SubscribableNo
         return 'water-intake-reminder-database';
     }
 
+    public static function subscribableNotificationTypeDescription(): string
+    {
+        return 'Lembrete Ingestão de Água via notificação interna';
+    }
+
     /**
      * Get the notification's delivery channels.
      *
