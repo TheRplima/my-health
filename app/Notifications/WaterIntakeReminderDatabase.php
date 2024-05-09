@@ -4,11 +4,9 @@ namespace App\Notifications;
 
 use Asantibanez\LaravelSubscribableNotifications\Contracts\SubscribableNotification;
 use Asantibanez\LaravelSubscribableNotifications\Traits\DispatchesToSubscribers;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use NotificationChannels\Telegram\TelegramMessage;
+use Illuminate\Bus\Queueable;
+use Carbon\Carbon;
 
 class WaterIntakeReminderDatabase extends Notification implements SubscribableNotification
 {
@@ -53,9 +51,16 @@ class WaterIntakeReminderDatabase extends Notification implements SubscribableNo
      */
     public function toArray(object $notifiable): array
     {
+        $waterIntakesToday = $this->user->waterIntakeToday();
+        $lastDrink = $waterIntakesToday->latest()->first();
+        $amountIngested = $waterIntakesToday->sum('amount');
+        $goal = $this->user->daily_water_amount;
+
         return [
             'title' => 'Hora de beber água!',
-            'body'  => $this->user->name . ', faz pelo menos uma hora que você não bebe água! Não se esqueça de se manter hidratado!',
+            'body'  => $this->user->name . " não esqueça de se manter hidratado, última vez que bebeu água foi às ." . Carbon::parse($lastDrink->created_at)->toTimeString() . "!
+            \n\nVocê ingeriu " . $amountIngested . "ml de água hoje, faltam " . ($goal - $amountIngested) . "ml para atingir sua meta diária de " . $goal . "ml.
+            \n\nEscolha uma das opções abaixo para registrar a ingestão de água:",
         ];
     }
 }

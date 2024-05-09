@@ -31,16 +31,24 @@ class WaterIntakeReminder implements ShouldQueue
     {
         $users = User::all();
         foreach ($users as $user) {
+            $disableNotification = Cache::get('disable_notification_' . $user->id);
+            // If the user has disabled notifications, skip
+            if ($disableNotification === 0 || ($disableNotification && now()->diffInMinutes($disableNotification) < 0)) {
+                continue;
+            }
             // Get the last drink of the user
-            $lastDrink = $user->waterIntakeToday()->latest()->first();
+            $waterIntakesToday = $user->waterIntakeToday();
+            $lastDrink = $waterIntakesToday->latest()->first();
+            $amountIngested = $waterIntakesToday->sum('amount');
+            $goal = $user->daily_water_amount;
             // Get the last notification of the user
             $lastNotification = Cache::get('lastest_otification');
             // If the user has not drunk water in the last hour and lastNotification cached was after 15 minutes and time range between 08:00 and 23:00  , send a reminder
-            if ($lastDrink && $lastDrink->created_at->diffInMinutes(now()) > 60 && (!$lastNotification || Carbon::parse($lastNotification)->diffInMinutes() >= 15) && now()->between('08:00', '23:00')) {
+            if (($amountIngested < $goal) && ($lastDrink && $lastDrink->created_at->diffInMinutes(now()) > 60) && (!$lastNotification || Carbon::parse($lastNotification)->diffInMinutes() >= 15) && now()->between('08:00', '23:00')) {
                 // Dispatch the event
                 WaterIntakeReminderEvent::dispatch($user);
                 // Cache the last notification
-                Cache::put('lastest_otification', now(), 60 * 24 * 7);
+                Cache::put('lastest_otification', now());
             }
         }
     }

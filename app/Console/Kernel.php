@@ -3,6 +3,8 @@
 namespace App\Console;
 
 use App\Http\Controllers\WaterIntakeController;
+use App\Jobs\GetTelegramUpdates;
+use App\Jobs\ManageNotificationsDispatcher;
 use App\Jobs\SubscribeToTelegramNotifications;
 use App\Jobs\TelegramBotCallback;
 use App\Jobs\WaterIntakeReminder;
@@ -16,9 +18,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        $schedule->job(new GetTelegramUpdates())->everyFiveSeconds()->name('get-telegram-updates');
+        $schedule->job(new TelegramBotCallback())->everyTenSeconds()->name('telegram-bot-callback');
+        $schedule->job(new ManageNotificationsDispatcher())->everyTenSeconds()->name('manage-notifications-dispatcher');
         $schedule->job(new SubscribeToTelegramNotifications())->everyMinute()->name('subscribe-telegram-notifications');
         $schedule->job(new WaterIntakeReminder())->everyMinute()->name('water-intake-reminder');
-        $schedule->job(new TelegramBotCallback(app(WaterIntakeController::class)))->everyFiveSeconds()->name('telegram-bot-callback');
     }
 
     /**
