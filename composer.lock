@@ -4,8 +4,71 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c27867b4e24ad99ab5f6af6b4c3b6224",
+    "content-hash": "fd39cb88aa438a8062172800e0588de8",
     "packages": [
+        {
+            "name": "asantibanez/laravel-subscribable-notifications",
+            "version": "v1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/asantibanez/laravel-subscribable-notifications.git",
+                "reference": "b78665f196731f2821e2ff3d637d26656e0f952e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/asantibanez/laravel-subscribable-notifications/zipball/b78665f196731f2821e2ff3d637d26656e0f952e",
+                "reference": "b78665f196731f2821e2ff3d637d26656e0f952e",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^7.0|^8.0|^9.0|^10.0|^11.0",
+                "laravel/legacy-factories": "^1.1",
+                "php": "^7.4|^8.0|^8.1|^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.0|^8.0|^9.0",
+                "phpunit/phpunit": "^9.5|^10.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Asantibanez\\LaravelSubscribableNotifications\\LaravelSubscribableNotificationsServiceProvider"
+                    ],
+                    "aliases": {
+                        "LaravelSubscribableNotifications": "NotificationSubscriptionManager"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Asantibanez\\LaravelSubscribableNotifications\\": "src",
+                    "Asantibanez\\LaravelSubscribableNotifications\\Database\\Factories\\": "database/factories"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Andrés Santibáñez",
+                    "email": "santibanez.andres@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel Subscribable Notifications",
+            "homepage": "https://github.com/asantibanez/laravel-subscribable-notifications",
+            "keywords": [
+                "asantibanez",
+                "laravel-subscribable-notifications"
+            ],
+            "support": {
+                "issues": "https://github.com/asantibanez/laravel-subscribable-notifications/issues",
+                "source": "https://github.com/asantibanez/laravel-subscribable-notifications/tree/v1.0.5"
+            },
+            "time": "2024-04-29T14:38:24+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.11.0",
@@ -1324,6 +1387,62 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2024-03-21T13:36:36+00:00"
+        },
+        {
+            "name": "laravel/legacy-factories",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/legacy-factories.git",
+                "reference": "6cb79f668fc36b8b396ada1da3ba45867889c30f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/legacy-factories/zipball/6cb79f668fc36b8b396ada1da3ba45867889c30f",
+                "reference": "6cb79f668fc36b8b396ada1da3ba45867889c30f",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/macroable": "^8.0|^9.0|^10.0|^11.0",
+                "php": "^7.3|^8.0",
+                "symfony/finder": "^3.4|^4.0|^5.0|^6.0|^7.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Illuminate\\Database\\Eloquent\\LegacyFactoryServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "helpers.php"
+                ],
+                "psr-4": {
+                    "Illuminate\\Database\\Eloquent\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "The legacy version of the Laravel Eloquent factories.",
+            "homepage": "http://laravel.com",
+            "support": {
+                "issues": "https://github.com/laravel/framework/issues",
+                "source": "https://github.com/laravel/framework"
+            },
+            "time": "2024-01-15T13:55:14+00:00"
         },
         {
             "name": "laravel/prompts",

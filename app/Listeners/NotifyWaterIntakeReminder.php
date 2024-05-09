@@ -2,9 +2,9 @@
 
 namespace App\Listeners;
 
-use App\Notifications\WaterIntakeReminder;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Notifications\WaterIntakeReminderDatabase;
+use App\Notifications\WaterIntakeReminderMail;
+use App\Notifications\WaterIntakeReminderTelegram;
 
 class NotifyWaterIntakeReminder
 {
@@ -21,6 +21,8 @@ class NotifyWaterIntakeReminder
      */
     public function handle(object $event): void
     {
-        $event->user->notify(new WaterIntakeReminder($event->user));
+        WaterIntakeReminderDatabase::dispatch($event->user);
+        WaterIntakeReminderMail::dispatch($event->user);
+        WaterIntakeReminderTelegram::dispatch($event->user);
     }
 }

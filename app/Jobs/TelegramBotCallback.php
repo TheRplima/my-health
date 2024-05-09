@@ -11,7 +11,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Telegram\TelegramMessage;
-use NotificationChannels\Telegram\TelegramUpdates;
 
 class TelegramBotCallback implements ShouldQueue
 {
@@ -32,57 +31,46 @@ class TelegramBotCallback implements ShouldQueue
      */
     public function handle(): void
     {
-        $updates = TelegramUpdates::create()
-            ->latest()
-            ->options([
-                'timeout' => 0,
-                'allowed_updates' => "callback_query"
-            ])
-            ->get();
-
-        if ($updates['ok'] && count($updates['result']) > 0) {
-            foreach ($updates['result'] as $update) {
+        $storageUpdates = Cache::get('telegram_updates') ?? [];
+        if (count($storageUpdates) > 0) {
+            $updates = $storageUpdates->getItemsByType('callback_query');
+            foreach ($updates->toArray(request()) as $update) {
                 $updateId = $update['update_id'];
-                $callback = $update['callback_query'];
-                $latestUpdateIds = Cache::get('lastest_update_ids');
+                $storageUpdates = $storageUpdates->removeItem($updateId);
+                Cache::forget('telegram_updates');
+                Cache::put('telegram_updates', $storageUpdates);
 
-                if ($callback && (($latestUpdateIds !== null && !in_array($updateId,  $latestUpdateIds)) || $latestUpdateIds === null)) {
-                    $latestUpdateIds[] = $updateId;
-                    Cache::put('lastest_update_ids', $latestUpdateIds, 60 * 24 * 7);
+                $chatId = $update['chat_id'];
+                $serviceName = $update['command']['service'];
+                $function = $update['command']['function'];
+                $field = $update['command']['field'];
+                $value = $update['command']['value'];
 
-                    $chatId = $callback['message']['chat']['id'];
-                    $data = $callback['data'];
-                    $serviceName = explode('_', $data)[0];
-                    $function = explode('_', $data)[1];
-                    $field = explode(':', explode('_', $data)[2])[0];
-                    $value = explode(':', explode('_', $data)[2])[1];
+                $user = User::where('telegram_user_id', $chatId)->first();
+                if ($user) {
+                    if (in_array(ucfirst($serviceName), $this->allowedServices)) {
+                        $service = '\\App\\Services\\' . ucfirst($serviceName) . 'Service';
+                        $repository = '\\App\\Repositories\\' . ucfirst($serviceName) . 'Repository';
 
-                    $user = User::where('telegram_user_id', $chatId)->first();
-                    if ($user) {
-                        if (in_array(ucfirst($serviceName), $this->allowedServices)) {
-                            $service = '\\App\\Services\\' . ucfirst($serviceName) . 'Service';
-                            $repository = '\\App\\Repositories\\' . ucfirst($serviceName) . 'Repository';
+                        $payload = [
+                            'user_id' => $user->id,
+                            $field => $value
+                        ];
 
-                            $payload = [
-                                'user_id' => $user->id,
-                                $field => $value
-                            ];
+                        $serviceInstance = new $service(new $repository);
+                        $object = $serviceInstance->$function($payload);
 
-                            $serviceInstance = new $service(new $repository);
-                            $object = $serviceInstance->$function($payload);
+                        if ($object) {
+                            //return back a message to user telegram chat saying that the operation was successful
+                            $message = TelegramMessage::create()
+                                ->to($user->telegram_user_id)
+                                ->content('Registro realizado com sucesso!');
 
-                            if ($object) {
-                                //return back a message to user telegram chat saying that the operation was successful
-                                $message = TelegramMessage::create()
-                                    ->to($user->telegram_user_id)
-                                    ->content('Registro realizado com sucesso!');
+                            $message->send();
 
-                                $message->send();
-
-                                Log::info('User with ID: ' . $user->id . ' has updated ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
-                            } else {
-                                Log::error('User with ID: ' . $user->id . ' has tried to update ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
-                            }
+                            Log::info('User with ID: ' . $user->id . ' has updated ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+                        } else {
+                            Log::error('User with ID: ' . $user->id . ' has tried to update ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
                         }
                     }
                 }
