@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Http\Resources\TelegramUpdateCollection;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,8 +32,8 @@ class TelegramBotCallback implements ShouldQueue
      */
     public function handle(): void
     {
-        $storageUpdates = Cache::get('telegram_updates') ?? [];
-        if (count($storageUpdates) > 0) {
+        $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
+        if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('callback_query');
             foreach ($updates->toArray(request()) as $update) {
                 $updateId = $update['update_id'];

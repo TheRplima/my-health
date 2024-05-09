@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Http\Resources\TelegramUpdateCollection;
 use App\Models\User;
 use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
 use Illuminate\Bus\Queueable;
@@ -31,7 +32,7 @@ class SubscribeToTelegramNotifications implements ShouldQueue
      */
     public function handle(): void
     {
-        $storageUpdates = Cache::get('telegram_updates') ?? [];
+        $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
         if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('message');
             foreach ($updates->toArray(request()) as $update) {
@@ -61,28 +62,6 @@ class SubscribeToTelegramNotifications implements ShouldQueue
                         $reply->send();
 
                         Log::info('Usuário com ID: ' . $user->id . ' foi inscrito para Notificações no Telegram com Chat ID: ' . $chatId);
-                    }
-                }
-            }
-        }
-
-        if ($updates['ok']) {
-            // Chat ID
-            $message = $updates['result'][count($updates['result']) - 1]['message'] ?? null;
-            if ($message) {
-                // check if text contains /start command
-                if (strpos($message['text'], '/start ') !== false) {
-                    // Extract the deeplink from the message
-                    $telegramUserDeeplink = explode(' ', $message['text'])[1];
-                    $chatId = $message['chat']['id'];
-                    // Find the user with the deeplink
-                    $user = User::where('telegram_user_deeplink', $telegramUserDeeplink)->first();
-                    if ($user && $user->telegram_user_id === null) {
-                        // Update the user with the chat id
-                        $user->telegram_user_id = $chatId;
-                        $user->save();
-                        //log result in laravel.log
-                        Log::info('User with ID: ' . $user->id . ' has been subscribed to Telegram Notifications with Chat ID: ' . $chatId);
                     }
                 }
             }

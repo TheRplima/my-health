@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Http\Resources\TelegramUpdateCollection;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,7 +31,7 @@ class ManageNotificationsDispatcher implements ShouldQueue
      */
     public function handle(): void
     {
-        $storageUpdates = Cache::get('telegram_updates') ?? [];
+        $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
         if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('message');
             foreach ($updates->toArray(request()) as $update) {
