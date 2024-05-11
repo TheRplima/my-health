@@ -60,8 +60,8 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
         $ret = TelegramMessage::create()
             ->to($this->user->telegram_user_id)
             ->content("*Hora de beber água!*
-            \n\n" . $this->user->name . " não esqueça de se manter hidratado, última vez que bebeu água foi às " . Carbon::parse($lastDrink->created_at)->toTimeString() . "!
-            \n\nVocê ingeriu " . $amountIngested . "ml de água hoje, faltam " . ($goal - $amountIngested) . "ml para atingir sua meta diária de " . $goal . "ml.
+            \n\n*" . $this->user->name . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
+            \n\nVocê ingeriu *" . $amountIngested . "ml* de água hoje, faltam *" . ($goal - $amountIngested) . "ml* para atingir sua meta diária de *" . $goal . "ml*.
             \n\nEscolha uma das opções abaixo para registrar a ingestão de água:");
 
         foreach ($waterIntakeContainers as $container) {

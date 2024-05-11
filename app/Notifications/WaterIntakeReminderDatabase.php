@@ -58,9 +58,9 @@ class WaterIntakeReminderDatabase extends Notification implements SubscribableNo
 
         return [
             'title' => 'Hora de beber água!',
-            'body'  => $this->user->name . " não esqueça de se manter hidratado, última vez que bebeu água foi às " . Carbon::parse($lastDrink->created_at)->toTimeString() . "!
-            \n\nVocê ingeriu " . $amountIngested . "ml de água hoje, faltam " . ($goal - $amountIngested) . "ml para atingir sua meta diária de " . $goal . "ml.
-            \n\nEscolha uma das opções abaixo para registrar a ingestão de água:",
+            'body'  => "<b>" . $this->user->name . "</b> não se esqueça de manter-se hidratado, a última vez que bebeu água foi às <b>" . Carbon::parse($lastDrink->created_at)->toTimeString() . "</b>!
+            <br />Você ingeriu <b>" . $amountIngested . "ml</b> de água hoje, faltam <b>" . ($goal - $amountIngested) . "ml</b> para atingir sua meta diária de <b>" . $goal . "ml</b>.
+            <br />Escolha uma das opções abaixo para registrar a ingestão de água:",
         ];
     }
 }
