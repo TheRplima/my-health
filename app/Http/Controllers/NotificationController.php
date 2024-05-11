@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\NotificationCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class NotificationController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
 
     public function index(Request $request)
     {
@@ -18,7 +24,8 @@ class NotificationController extends Controller
     public function indexUnreadNotifications(Request $request)
     {
         $unread_notifications = auth()->user()->unreadNotifications()->get();
-        return response($unread_notifications, Response::HTTP_OK);
+        $unread_notifications = $unread_notifications->reverse()->take(10);
+        return response(new NotificationCollection($unread_notifications), Response::HTTP_OK);
     }
 
     public function markNotification(Request $request, $id)
