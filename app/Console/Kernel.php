@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Http\Controllers\WaterIntakeController;
+use App\Jobs\ChatBot;
 use App\Jobs\GetTelegramUpdates;
 use App\Jobs\ManageNotificationsDispatcher;
 use App\Jobs\SubscribeToTelegramNotifications;
@@ -23,6 +24,7 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ManageNotificationsDispatcher())->everyTenSeconds()->name('manage-notifications-dispatcher');
         $schedule->job(new SubscribeToTelegramNotifications())->everyMinute()->name('subscribe-telegram-notifications');
         $schedule->job(new WaterIntakeReminder())->everyMinute()->name('water-intake-reminder');
+        $schedule->job(new ChatBot())->everyTenSeconds()->name('chat-bot');
     }
 
     /**
