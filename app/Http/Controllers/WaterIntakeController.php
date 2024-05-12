@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\GetWaterIntakeRequest;
 use App\Http\Requests\StoreWaterIntakeRequest;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Models\WaterIntake;
+use App\Http\Requests\GetWaterIntakeRequest;
 use App\Services\WaterIntakeService;
+use Illuminate\Http\Response;
 use Carbon\Carbon;
 
 class WaterIntakeController extends Controller
