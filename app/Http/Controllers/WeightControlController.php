@@ -29,6 +29,7 @@ class WeightControlController extends Controller
         $data = $request->validated();
         $initialDate = isset($data['initial_date']) && $data['initial_date'] ? $data['initial_date'] : null;
         $finalDate = isset($data['final_date']) && $data['final_date'] ? $data['final_date'] : null;
+        $data['max'] = isset($data['max']) && $data['max'] ? $data['max'] : null;
         if ($initialDate && $finalDate) {
             $weightControls = $this->wheightControlService->getWeightControlsByDateRange(auth()->user()->id, $initialDate, $finalDate, $data['max']);
         } else {
