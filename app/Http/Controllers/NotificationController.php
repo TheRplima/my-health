@@ -24,20 +24,29 @@ class NotificationController extends Controller
     public function indexUnreadNotifications(Request $request)
     {
         $unread_notifications = auth()->user()->unreadNotifications()->get();
-        $unread_notifications = $unread_notifications->reverse()->take(10);
         return response(new NotificationCollection($unread_notifications), Response::HTTP_OK);
     }
 
     public function markNotification(Request $request, $id)
     {
         auth()->user()->unreadNotifications->where('id', $id)->markAsRead();
-        return response('Notification marked as read successfully', Response::HTTP_OK);
+        $notifications = $this->indexUnreadNotifications($request);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Notification marked as read successfully',
+            'notifications' => $notifications->original,
+        ], Response::HTTP_OK);
     }
 
     public function markAllNotifications()
     {
         auth()->user()->unreadNotifications->markAsRead();
-        return response('All notifications marked as read successfully', Response::HTTP_OK);
+        $notifications = $this->indexUnreadNotifications(request());
+        return response()->json([
+            'status' => 'success',
+            'message' => 'All notifications marked as read successfully',
+            'notifications' => $notifications->original,
+        ], Response::HTTP_OK);
     }
 
     public function destroy(Request $request, $id)
