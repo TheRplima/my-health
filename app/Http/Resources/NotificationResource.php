@@ -20,7 +20,8 @@ class NotificationResource extends JsonResource
         return [
             'id' => $this['id'] ?? null,
             'image' => asset('storage/images/notifications/water-intake-reminder-icon.png'),
-            'message' => $this['data']['title'],
+            'title' => $this['data']['title'],
+            'body' => htmlspecialchars_decode($this['data']['body']),
             'receivedTime' => $receivedTime
         ];
     }
