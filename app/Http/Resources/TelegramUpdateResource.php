@@ -38,7 +38,7 @@ class TelegramUpdateResource extends JsonResource
         }
         if ($type === 'message') {
             return [
-                'service' => substr(explode(' ', $command)[0], 1),
+                'service' => strpos($command, '/') === 0 ? substr($command, 1) : $command,
                 'function' => null,
                 'field' => null,
                 'value' => explode(' ', $command)[1] ?? 0,
