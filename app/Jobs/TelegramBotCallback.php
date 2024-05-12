@@ -35,12 +35,9 @@ class TelegramBotCallback implements ShouldQueue
         $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
         if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('callback_query');
+            $updateProcessed = false;
             foreach ($updates->toArray(request()) as $update) {
                 $updateId = $update['update_id'];
-                $storageUpdates = $storageUpdates->removeItem($updateId);
-                Cache::forget('telegram_updates');
-                Cache::put('telegram_updates', $storageUpdates);
-
                 $chatId = $update['chat_id'];
                 $serviceName = $update['command']['service'];
                 $function = $update['command']['function'];
@@ -50,6 +47,8 @@ class TelegramBotCallback implements ShouldQueue
                 $user = User::where('telegram_user_id', $chatId)->first();
                 if ($user) {
                     if (in_array(ucfirst($serviceName), $this->allowedServices)) {
+                        $updateProcessed = true;
+
                         $service = '\\App\\Services\\' . ucfirst($serviceName) . 'Service';
                         $repository = '\\App\\Repositories\\' . ucfirst($serviceName) . 'Repository';
 
@@ -75,7 +74,12 @@ class TelegramBotCallback implements ShouldQueue
                         }
                     }
                 }
+                if ($updateProcessed) {
+                    $storageUpdates = $storageUpdates->removeItem($updateId);
+                }
             }
+            Cache::forget('telegram_updates');
+            Cache::put('telegram_updates', $storageUpdates);
         }
     }
 }

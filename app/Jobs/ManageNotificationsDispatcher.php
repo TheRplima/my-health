@@ -34,12 +34,9 @@ class ManageNotificationsDispatcher implements ShouldQueue
         $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
         if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('message');
+            $updateProcessed = false;
             foreach ($updates->toArray(request()) as $update) {
                 $updateId = $update['update_id'];
-                $storageUpdates = $storageUpdates->removeItem($updateId);
-                Cache::forget('telegram_updates');
-                Cache::put('telegram_updates', $storageUpdates);
-
                 $chatId = $update['chat_id'];
                 $command = $update['command']['service'];
                 $value = $update['command']['value'];
@@ -47,6 +44,7 @@ class ManageNotificationsDispatcher implements ShouldQueue
                 $user = User::where('telegram_user_id', $chatId)->first();
                 if ($user) {
                     if ($command === 'disableNotification') {
+                        $updateProcessed = true;
                         $disableNotification = Cache::get('disable_notification_' . $user->id);
                         if ($disableNotification === 0 || ($disableNotification && now()->diffInMinutes($disableNotification) < 0)) {
                             $msg = 'Notificações já estão desabilitadas';
@@ -68,6 +66,7 @@ class ManageNotificationsDispatcher implements ShouldQueue
                         $reply->send();
                     }
                     if ($command === 'enableNotification') {
+                        $updateProcessed = true;
                         $disableNotification = Cache::get('disable_notification_' . $user->id);
                         if ($disableNotification === null) {
                             $msg = 'Notificações já estão habilitadas';
@@ -83,7 +82,12 @@ class ManageNotificationsDispatcher implements ShouldQueue
                         $reply->send();
                     }
                 }
+                if ($updateProcessed) {
+                    $storageUpdates = $storageUpdates->removeItem($updateId);
+                }
             }
+            Cache::forget('telegram_updates');
+            Cache::put('telegram_updates', $storageUpdates);
         }
     }
 }

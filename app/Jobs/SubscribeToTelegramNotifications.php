@@ -35,11 +35,9 @@ class SubscribeToTelegramNotifications implements ShouldQueue
         $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
         if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('message');
+            $updateProcessed = false;
             foreach ($updates->toArray(request()) as $update) {
                 $updateId = $update['update_id'];
-                $storageUpdates = $storageUpdates->removeItem($updateId);
-                Cache::forget('telegram_updates');
-                Cache::put('telegram_updates', $storageUpdates);
 
                 $chatId = $update['chat_id'];
                 $command = $update['command']['service'];
@@ -48,6 +46,7 @@ class SubscribeToTelegramNotifications implements ShouldQueue
                     // Find the user with the deeplink
                     $user = User::where('telegram_user_deeplink', $value)->first();
                     if ($user && $user->telegram_user_id === null) {
+                        $updateProcessed = true;
                         // Update the user with the chat id
                         $user->telegram_user_id = $chatId;
                         $user->save();
@@ -64,7 +63,33 @@ class SubscribeToTelegramNotifications implements ShouldQueue
                         Log::info('Usuário com ID: ' . $user->id . ' foi inscrito para Notificações no Telegram com Chat ID: ' . $chatId);
                     }
                 }
+                if ($command === 'stop') {
+                    // Find the user with the chat id
+                    $user = User::where('telegram_user_id', $chatId)->first();
+                    if ($user) {
+                        $updateProcessed = true;
+                        // Update the user with the chat id
+                        $user->telegram_user_id = null;
+                        $user->save();
+
+                        $subscribeManagement = new NotificationSubscriptionManager();
+                        $subscribeManagement->unsubscribe($user, 'App\\Notifications\\WaterIntakeReminderDatabase');
+                        $subscribeManagement->unsubscribe($user, 'App\\Notifications\\WaterIntakeReminderTelegram');
+
+                        $reply = TelegramMessage::create()
+                            ->to($chatId)
+                            ->content('Você foi removido das Notificações no Telegram! Agora você não receberá mais notificações importantes diretamente no seu Telegram!');
+                        $reply->send();
+
+                        Log::info('Usuário com ID: ' . $user->id . ' foi removido das Notificações no Telegram com Chat ID: ' . $chatId);
+                    }
+                }
+                if ($updateProcessed) {
+                    $storageUpdates = $storageUpdates->removeItem($updateId);
+                }
             }
+            Cache::forget('telegram_updates');
+            Cache::put('telegram_updates', $storageUpdates);
         }
     }
 }
