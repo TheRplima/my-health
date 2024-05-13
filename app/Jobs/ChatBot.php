@@ -74,7 +74,12 @@ class ChatBot implements ShouldQueue
                                     $menu->put($user->id, 3);
                                     $this->sendTelegramMessage($chatId, $this->getMenu(3));
                                 }
-                                if (strtolower($command) == 4 || strtolower($command) == 'sair' || strtolower($command) == 'exit') {
+                                if (strtolower($command) == 4 || strtolower($command) == 'recipientes' || strtolower($command) == 'containers') {
+                                    $updateProcessed = true;
+                                    $menu->put($user->id, 4);
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(4));
+                                }
+                                if (strtolower($command) == 5 || strtolower($command) == 'sair' || strtolower($command) == 'exit') {
                                     $updateProcessed = true;
                                     $chatBotStarted->forget($user->id);
                                     $menu->forget($user->id);
@@ -181,6 +186,45 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $menu->put($user->id, 0);
                                     $this->sendTelegramMessage($chatId, $this->getMenu(0));
+                                }
+                            }
+                            if ($level == 4) {
+                                if (strtolower($command) == 1 || strtolower($command) == 'cadastrar' || strtolower($command) == 'register') {
+                                    $updateProcessed = true;
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu cadastrar recipiente de água. Qual capacidade do recipiente? (em ml)');
+                                }
+                                if (strtolower($command) == 2 || strtolower($command) == 'ver' || strtolower($command) == 'show') {
+                                    $updateProcessed = true;
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu ver recipientes cadastrados.' . "\n\n" . $this->showWaterIntakeContainers($user) . $this->getMenu(4, false));
+                                }
+                                if (strtolower($command) == 3 || strtolower($command) == 'voltar' || strtolower($command) == 'back') {
+                                    $updateProcessed = true;
+                                    $menu->put($user->id, 0);
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(0));
+                                }
+                                // Register water intake container
+                                if (is_numeric($command) && $command >= 10) {
+                                    $updateProcessed = true;
+                                    $service = '\\App\\Services\\WaterIntakeContainerService';
+                                    $repository = '\\App\\Repositories\\WaterIntakeContainerRepository';
+
+                                    $payload = [
+                                        'user_id' => $user->id,
+                                        'name' => 'Recipiente de ' . $command . 'ml',
+                                        'size' => $command,
+                                        'icon' => 'glass-water',
+                                        'active' => 1
+                                    ];
+
+                                    $serviceInstance = new $service(new $repository);
+                                    $object = $serviceInstance->create($payload);
+
+                                    if ($object) {
+                                        //return back a message to user telegram chat saying that the operation was successful
+                                        $this->sendTelegramMessage($chatId, 'Registro realizado com sucesso!' . "\n\n" . $this->getMenu(4, false));
+                                    } else {
+                                        Log::error('User with ID: ' . $user->id . ' has tried to update WaterIntakeContainer with size = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+                                    }
                                 }
                             }
                         }
@@ -396,7 +440,7 @@ class ChatBot implements ShouldQueue
         $menu = '';
         switch ($level) {
             case 0:
-                $menu = 'Escolha uma das opções abaixo digitando o número.' . "\n" . '1. Água' . "\n" . '2. Peso' . "\n" . '3. Notificações' . "\n" . '4. Sair do Menu';
+                $menu = 'Escolha uma das opções abaixo digitando o número.' . "\n" . '1. Água' . "\n" . '2. Peso' . "\n" . '3. Notificações' . "\n" . '4. Recipientes' . "\n" . '5. Sair do Menu';
                 break;
             case 1:
                 if ($header) {
@@ -415,6 +459,12 @@ class ChatBot implements ShouldQueue
                     $menu = 'Você entrou no módulo de notificações.' . "\n";
                 }
                 $menu = 'O que gostaria de fazer?' . "\n" . '1. Ativar notificações' . "\n" . '2. Desativar notificações' . "\n" . '3. Voltar ao Menu';
+                break;
+            case 4:
+                if ($header) {
+                    $menu = 'Você entrou no módulo de recipientes de água.' . "\n";
+                }
+                $menu = 'O que gostaria de fazer?' . "\n" . '1. Cadastrar recipiente' . "\n" . '2. Ver recipientes cadastrados' . "\n" . '3. Voltar ao Menu';
                 break;
         }
         return $menu;
@@ -491,6 +541,33 @@ class ChatBot implements ShouldQueue
         }
 
         return 'Você não registrou seu peso este mês.';
+    }
+
+    public function showWaterIntakeContainers($user, $asObject = false)
+    {
+        $service = '\\App\\Services\\WaterIntakeContainerService';
+        $repository = '\\App\\Repositories\\WaterIntakeContainerRepository';
+
+        $serviceInstance = new $service(new $repository);
+        $object = $serviceInstance->getWaterIntakeContainersByUser($user->id);
+
+        if ($asObject) {
+            return $object;
+        }
+
+        if ($object) {
+            $list = '';
+            foreach ($object as $item) {
+                $list .= $item->name . ' - ';
+                $list .= $item->size . 'ml' . "\n";
+            }
+
+            $message = 'Detalhes:' . "\n" . $list;
+
+            return $message;
+        }
+
+        return 'Você ainda não possui recipientes de água cadastrados.';
     }
 
     public function validateFullName($nome)
