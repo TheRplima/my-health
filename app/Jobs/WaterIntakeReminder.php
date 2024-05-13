@@ -42,13 +42,14 @@ class WaterIntakeReminder implements ShouldQueue
             $amountIngested = $waterIntakesToday->sum('amount');
             $goal = $user->daily_water_amount;
             // Get the last notification of the user
-            $lastNotification = Cache::get('lastest_otification');
+            $lastNotification = Cache::get('lastest_notification');
+            // dd($amountIngested, $goal, $lastDrink, $lastNotification);
             // If the user has not drunk water in the last hour and lastNotification cached was after 15 minutes and time range between 08:00 and 23:00  , send a reminder
-            if (($amountIngested < $goal) && ($lastDrink && $lastDrink->created_at->diffInMinutes(now()) > 60) && (!$lastNotification || Carbon::parse($lastNotification)->diffInMinutes() >= 15) && now()->between('08:00', '23:00')) {
+            if (($amountIngested < $goal) && ($lastDrink === null || ($lastDrink && $lastDrink->created_at->diffInMinutes(now()) > 60)) && (!$lastNotification || Carbon::parse($lastNotification)->diffInMinutes() >= 15) && now()->between('08:00', '23:00')) {
                 // Dispatch the event
                 WaterIntakeReminderEvent::dispatch($user);
                 // Cache the last notification
-                Cache::put('lastest_otification', now());
+                Cache::put('lastest_notification', now());
             }
         }
     }
