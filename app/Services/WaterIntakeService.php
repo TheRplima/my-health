@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Exceptions\FailedAction;
 use App\Hooks\SendCallbackQueryHomeAssistant;
+use App\Http\Resources\WaterIntakeCollection;
 use App\Repositories\WaterIntakeRepository;
-use Illuminate\Support\Facades\DB;
+use App\Http\Resources\WaterIntakeResource;
 use Illuminate\Http\Response;
 
 class WaterIntakeService
@@ -27,7 +28,7 @@ class WaterIntakeService
                 $sendCallbackQueryHomeAssistant(['amount' => $data['amount']]);
             }
 
-            return $waterIntake;
+            return new WaterIntakeResource($waterIntake);
         } catch (\Exception $e) {
             throw new FailedAction('Falha ao registrar o consumo de água. Erro: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -54,7 +55,7 @@ class WaterIntakeService
                     $sendCallbackQueryHomeAssistant(['amount' => ($waterIntake->amount * -1)]);
                 }
 
-                return $waterIntake;
+                return new WaterIntakeResource($waterIntake);
             }
 
             return false;
@@ -66,12 +67,14 @@ class WaterIntakeService
     public function getById(int $id)
     {
         // Get a specific water intake record by ID
-        return $this->waterIntakeRepository->find($id);
+        return new WaterIntakeResource($this->waterIntakeRepository->find($id));
     }
 
     public function getWaterIntakesByDay(int $userId, string $date)
     {
         // Get water intake records by day
-        return $this->waterIntakeRepository->getWaterIntakesByDay($userId, $date);
+        return new WaterIntakeCollection(
+            $this->waterIntakeRepository->getWaterIntakesByDay($userId, $date)
+        );
     }
 }
