@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\WaterIntakeContainers;
+use App\Models\WaterIntakeContainer;
 use Illuminate\Database\Seeder;
 
-class WaterIntakeContainersSeeder extends Seeder
+class WaterIntakeContainerSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        WaterIntakeContainers::factory(5)->create();
+        WaterIntakeContainer::factory(5)->create();
     }
 }

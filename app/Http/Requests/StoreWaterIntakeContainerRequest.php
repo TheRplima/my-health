@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateWaterIntakeContainersRequest extends FormRequest
+class StoreWaterIntakeContainerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,10 @@ class UpdateWaterIntakeContainersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string',
-            'size' => 'integer',
-            'icon' => 'string',
+            'user_id' => 'required|integer|exists:users,id',
+            'name' => 'required|string',
+            'size' => 'required|integer',
+            'icon' => 'nullable|string',
             'active' => 'boolean'
         ];
     }
@@ -32,11 +33,13 @@ class UpdateWaterIntakeContainersRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'user_id.required' => 'User ID is required',
+            'user_id.integer' => 'User ID must be an integer',
+            'user_id.exists' => 'User ID must exist in the users table',
             'name.required' => 'Name is required',
             'name.string' => 'Name must be a string',
             'size.required' => 'Size is required',
             'size.integer' => 'Size must be an integer',
-            'icon.required' => 'Icon is required',
             'icon.string' => 'Icon must be a string',
             'active.boolean' => 'Active must be a boolean'
         ];

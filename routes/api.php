@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\WaterIntakeContainersController;
+use App\Http\Controllers\WaterIntakeContainerController;
 use App\Http\Controllers\WeightControlController;
 use App\Http\Controllers\WaterIntakeController;
 use App\Http\Controllers\UserController;
@@ -52,7 +52,7 @@ Route::controller(WeightControlController::class)->group(function () {
     Route::delete('weight-control/{id}', 'destroy');
 });
 
-Route::controller(WaterIntakeContainersController::class)->group(function () {
+Route::controller(WaterIntakeContainerController::class)->group(function () {
     Route::get('water-intake-containers', 'index');
     Route::post('water-intake-container', 'store');
     Route::put('water-intake-container/{id}', 'update');

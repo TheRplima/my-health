@@ -71,6 +71,6 @@ class User extends Authenticatable implements JWTSubject
 
     public function waterIntakeContainers()
     {
-        return $this->hasMany(WaterIntakeContainers::class);
+        return $this->hasMany(WaterIntakeContainer::class);
     }
 }
