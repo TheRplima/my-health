@@ -30,8 +30,25 @@ class WaterIntakeReminder implements ShouldQueue
      */
     public function handle(): void
     {
+        $notication_subscribable = [
+            'water-intake-reminder-mail',
+            'water-intake-reminder-database',
+            'water-intake-reminder-telegram'
+        ];
         $users = User::all();
         foreach ($users as $user) {
+            //loop at subscribable channels to check if user has any subscription, if not skip
+            $hasSubscribable = false;
+            foreach ($notication_subscribable as $subscribable) {
+                if ($user->notificationSubscriptions()->forType($subscribable)->exists()) {
+                    $hasSubscribable = true;
+                    break;
+                }
+            }
+            if (!$hasSubscribable) {
+                continue;
+            }
+
             // If the user has not set a daily water amount, skip
             if ($user->daily_water_amount === null) {
                 continue;
@@ -70,7 +87,6 @@ class WaterIntakeReminder implements ShouldQueue
 
             //send reminder
             WaterIntakeReminderEvent::dispatch($user);
-            Log::info('Water intake reminder sent to user ' . $user->id);
 
             // Cache the last notification
             Cache::put('lastest_notification_' . $user->id, now());
