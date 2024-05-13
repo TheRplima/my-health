@@ -57,12 +57,18 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
         $amountIngested = $waterIntakesToday->sum('amount');
         $goal = $this->user->daily_water_amount;
 
+        if ($lastDrink != null) {
+            $body = "*Hora de beber água!*
+            \n\n*" . $this->user->name . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
+            \n\nVocê ingeriu *" . $amountIngested . "ml* de água hoje, faltam *" . ($goal - $amountIngested) . "ml* para atingir sua meta diária de *" . $goal . "ml*.";
+        } else {
+            $body = "*Hora de beber água!*
+            \n\n*" . $this->user->name . "* não se esqueça de se manter hidratado, você ainda não registrou consumo de água hoje!";
+        }
+
         $ret = TelegramMessage::create()
             ->to($this->user->telegram_user_id)
-            ->content("*Hora de beber água!*
-            \n\n*" . $this->user->name . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
-            \n\nVocê ingeriu *" . $amountIngested . "ml* de água hoje, faltam *" . ($goal - $amountIngested) . "ml* para atingir sua meta diária de *" . $goal . "ml*.
-            \n\nEscolha uma das opções abaixo para registrar a ingestão de água:");
+            ->content($body . "\n\nEscolha uma das opções abaixo para registrar a ingestão de água:");
 
         foreach ($waterIntakeContainers as $container) {
             $ret->buttonWithCallback('Bebi 1 ' . $container->name, 'WaterIntake_create_amount:' . $container->size);
