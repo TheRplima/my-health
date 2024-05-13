@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Http\Resources\TelegramUpdateCollection;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Telegram\TelegramMessage;
 use NotificationChannels\Telegram\TelegramUpdates;
+use Ramsey\Uuid\Uuid;
 
 class ChatBot implements ShouldQueue
 {
@@ -237,6 +239,272 @@ class ChatBot implements ShouldQueue
                             }
                         }
                     }
+                } else {
+                    if (strtolower($command) == 'start') {
+                        $updateProcessed = true;
+                        if (!$chatBotStarted->contains($chatId)) {
+                            $chatBotStarted->push($chatId);
+                        }
+                        $menu->put($chatId, 0);
+                        $reply = TelegramMessage::create()
+                            ->to($chatId)
+                            ->content('Seja bem vindo! Você ainda não está cadastrado em nosso sistema. Gostaria de se cadastrar agora?' . "\n" . '1. Sim' . "\n" . '2. Não');
+                        $reply->send();
+                    }
+                    if ($chatBotStarted->contains($chatId)) {
+                        if ($menu->has($chatId)) {
+                            $level = $menu->get($chatId);
+                            //opçao para cancelar o cadastro a qualquer momento
+                            if (strtolower($command) == 'cancelar' || strtolower($command) == 'cancel' || strtolower($command) == 'parar' || strtolower($command) == 'stop' || strtolower($command) == 'sair' || strtolower($command) == 'exit') {
+                                $updateProcessed = true;
+                                $chatBotStarted->forget($chatId);
+                                $menu->forget($chatId);
+                                Cache::forget('register_' . $chatId);
+                                $level = -1;
+                                $reply = TelegramMessage::create()
+                                    ->to($chatId)
+                                    ->content('Cadastro cancelado. Obrigado! Até a próxima.');
+                                $reply->send();
+                            }
+                            if ($level == 0) {
+                                if (strtolower($command) == 1 || strtolower($command) == 'sim' || strtolower($command) == 'yes') {
+                                    $updateProcessed = true;
+                                    $menu->put($chatId, 1);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Você escolheu se cadastrar. Qual o seu nome completo?');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, new UserResource(new User()));
+                                } elseif (strtolower($command) == 2 || strtolower($command) == 'nao' || strtolower($command) == 'não' || strtolower($command) == 'no') {
+                                    $updateProcessed = true;
+                                    $chatBotStarted->forget($chatId);
+                                    $menu->forget($chatId);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Obrigado! Até a próxima.');
+                                    $reply->send();
+                                } elseif (strtolower($command) != 'start') {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Opção inválida. Gostaria de se cadastrar agora?' . "\n" . '1. Sim' . "\n" . '2. Não');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 1) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a name to use in register, check if command is a name and ask for a email
+                                if ($userResource && $userResource->name === null && $this->validateFullName($command)) {
+                                    $updateProcessed = true;
+                                    $userResource->name = $command;
+                                    $menu->put($chatId, 2);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual o seu e-mail?');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Nome inválido. Qual o seu nome completo?');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 2) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a email to use in register, check if command is a email and ask for a password
+                                if ($userResource && $userResource->name !== null && $userResource->email === null && $this->validateEmail($command)) {
+                                    $updateProcessed = true;
+                                    $userResource->email = $command;
+                                    $menu->put($chatId, 3);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual a sua senha?' . "\n" . 'A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial. Exemplo: Abc123@!');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('E-mail inválido. Qual o seu e-mail?');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 3) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a password to use in register, check if command is a password and ask for a phone
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password === null && $this->validatePassword($command)) {
+                                    $updateProcessed = true;
+                                    $userResource->password = $command;
+                                    $menu->put($chatId, 4);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual o seu telefone? (XX) XXXXX-XXXX');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Senha inválida. Qual a sua senha?' . "\n" . 'A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial. Exemplo: Abc123@!');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 4) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a phone to use in register, check if command is a phone and ask for a gender
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone === null && $this->validatePhoneNumber($command)) {
+                                    $updateProcessed = true;
+                                    $phone = preg_replace('/[^0-9]/', '', $command);
+                                    $userResource->phone = $phone;
+                                    $menu->put($chatId, 5);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual o seu gênero? (M/F)');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Telefone inválido. Qual o seu telefone? (XX) XXXXX-XXXX');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 5) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a gender to use in register, check if command is a string, only char M or F and ask for birthdate
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone !== null && $userResource->gender == null && strtolower($command) == 'm' || strtolower($command) == 'f') {
+                                    $updateProcessed = true;
+                                    $gender = strtolower($command) == 'm' ? 'M' : 'F';
+                                    $userResource->gender = $gender;
+                                    $menu->put($chatId, 6);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual a sua data de nascimento? (dd/mm/aaaa)');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Gênero inválido. Qual o seu gênero? (M/F)');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 6) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a birthdate to use in register, check if command is a date and ask for a height
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone !== null && $userResource->gender !== null && $userResource->dob === null && $this->validateBirthdayDate($command)) {
+                                    $updateProcessed = true;
+                                    $dob = substr($command, 6, 4) . '-' . substr($command, 3, 2) . '-' . substr($command, 0, 2);
+                                    $userResource->dob = $dob;
+                                    $menu->put($chatId, 7);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual a sua altura? (em cm)');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Data de nascimento inválida. Qual a sua data de nascimento? (dd/mm/aaaa)');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 7) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a height to use in register, check if command is a number and ask for a weight
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone !== null && $userResource->gender !== null && $userResource->dob !== null && $userResource->height === null && (is_numeric($command) && $command >= 145 && $command <= 220)) {
+                                    $updateProcessed = true;
+                                    $userResource->height = $command;
+                                    $menu->put($chatId, 8);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual o seu peso? (em kg)');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Altura inválida. Qual a sua altura? (em cm)');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 8) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a weight to use in register, check if command is a number and ask for a daily water amount
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone !== null && $userResource->gender !== null && $userResource->dob !== null && $userResource->height !== null && $userResource->weight === null && (is_numeric($command) && $command >= 50 && $command <= 140)) {
+                                    $updateProcessed = true;
+                                    $userResource->weight = $command;
+                                    $menu->put($chatId, 9);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Qual a quantidade de água que você deseja consumir diariamente (em ml)?');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Peso inválido. Qual o seu peso? (em kg)');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 9) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a daily water amount to use in register, check if command is a number, finish register and send a message asking if the user wand to receive notifications via telegram
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone !== null && $userResource->gender !== null && $userResource->dob !== null && $userResource->height !== null && $userResource->weight !== null && $userResource->daily_water_amount === null && (is_numeric($command) && $command >= 1000 && $command <= 10000)) {
+                                    $updateProcessed = true;
+                                    $userResource->daily_water_amount = $command;
+                                    $menu->put($chatId, 10);
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Você deseja receber notificações via Telegram? (S/N)');
+                                    $reply->send();
+                                    Cache::put('register_' . $chatId, $userResource);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Quantidade de água inválida. Qual a quantidade de água que você deseja consumir diariamente (em ml)?');
+                                    $reply->send();
+                                }
+                            }
+                            if ($level == 10) {
+                                $userResource = Cache::get('register_' . $chatId);
+                                //user sent a notification option to use in register, check if command is a string, only char S or N, finish register and send a message with a success message
+                                if ($userResource && $userResource->name !== null && $userResource->email !== null && $userResource->password !== null && $userResource->phone !== null && $userResource->gender !== null && $userResource->dob !== null && $userResource->height !== null && $userResource->weight !== null && $userResource->daily_water_amount !== null && (strtolower($command) == 's' || strtolower($command) == 'n')) {
+                                    $updateProcessed = true;
+                                    $notifications = strtolower($command) == 's' ? 1 : 0;
+                                    if ($notifications) {
+                                        $userResource->telegram_user_id = $chatId;
+                                        $userResource->telegram_user_deeplink = Uuid::uuid4();
+                                    }
+                                    $user = User::create($userResource->toArray(request()));
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Cadastro realizado com sucesso! Você já pode utilizar o menu de opções.' . "\n" . $this->getMenu(0));
+                                    $reply->send();
+                                    Cache::forget('register_' . $chatId);
+                                    $chatBotStarted->pull($chatId);
+                                    $chatBotStarted->push($user->id);
+                                    $menu->pull($chatId);
+                                    $menu->put($user->id, 0);
+                                    Cache::put('menu', $menu);
+                                } else {
+                                    $updateProcessed = true;
+                                    $reply = TelegramMessage::create()
+                                        ->to($chatId)
+                                        ->content('Opção inválida. Você deseja receber notificações via Telegram? (S/N)');
+                                    $reply->send();
+                                }
+                            }
+                        }
+                    }
                 }
                 if ($updateProcessed) {
                     $storageUpdates = $storageUpdates->removeItem($updateId);
@@ -335,5 +603,44 @@ class ChatBot implements ShouldQueue
         }
 
         return 'Você não registrou seu peso este mês.';
+    }
+
+    public function validateFullName($nome)
+    {
+        //Validar nome completo. Deve conter no mínimo 2 palavras, com pelo menos 2 caracteres em cada palavra, sem caracteres especiais, porém permitir acentos
+        return preg_match('/^([a-zA-ZÀ-ú]+ ){1,}[a-zA-ZÀ-ú]+$/', $nome);
+    }
+
+    public function validateEmail($email)
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL);
+    }
+
+    public function validatePassword($password)
+    {
+        // Minimum eight characters, at least one uppercase letter, one lowercase letter and one number. allow special char
+        return preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/', $password);
+    }
+
+    public function validatePhoneNumber($phone)
+    {
+        // (99) 99999-9999 or (99) 9999-9999 or 99999-9999 or 9999-9999 or 99999999999 or 9999999999
+        return preg_match('/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/', $phone);
+    }
+
+    public function validateBirthdayDate($date)
+    {
+        // dd/mm/yyyy and more then 12 years old
+        $date = explode('/', $date);
+        if (count($date) == 3) {
+            $day = $date[0];
+            $month = $date[1];
+            $year = $date[2];
+            if (checkdate($month, $day, $year)) {
+                $date = \Carbon\Carbon::createFromDate($year, $month, $day);
+                return $date->diffInYears(now()) >= 12;
+            }
+        }
+        return false;
     }
 }
