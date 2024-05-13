@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use App\Models\User;
-use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Uuid;
+use App\Models\User;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
