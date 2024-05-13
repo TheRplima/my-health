@@ -2,19 +2,19 @@
 
 namespace App\Jobs;
 
+use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
+use NotificationChannels\Telegram\TelegramMessage;
 use App\Http\Resources\TelegramUpdateCollection;
-use App\Http\Resources\UserResource;
-use App\Models\User;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Log;
-use NotificationChannels\Telegram\TelegramMessage;
-use NotificationChannels\Telegram\TelegramUpdates;
+use Illuminate\Bus\Queueable;
 use Ramsey\Uuid\Uuid;
+use App\Models\User;
 
 class ChatBot implements ShouldQueue
 {
@@ -53,10 +53,7 @@ class ChatBot implements ShouldQueue
                             $chatBotStarted->push($user->id);
                         }
                         $menu->put($user->id, 0);
-                        $reply = TelegramMessage::create()
-                            ->to($chatId)
-                            ->content($this->getMenu(0));
-                        $reply->send();
+                        $this->sendTelegramMessage($chatId, $this->getMenu(0));
                     }
                     if ($chatBotStarted->contains($user->id)) {
                         if ($menu->has($user->id)) {
@@ -65,59 +62,38 @@ class ChatBot implements ShouldQueue
                                 if (strtolower($command) == 1 || strtolower($command) == 'agua' || strtolower($command) == 'water') {
                                     $updateProcessed = true;
                                     $menu->put($user->id, 1);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($this->getMenu(1));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(1));
                                 }
                                 if (strtolower($command) == 2 || strtolower($command) == 'peso' || strtolower($command) == 'weight') {
                                     $updateProcessed = true;
                                     $menu->put($user->id, 2);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($this->getMenu(2));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(2));
                                 }
                                 if (strtolower($command) == 3 || strtolower($command) == 'notificacoes' || strtolower($command) == 'notifications') {
                                     $updateProcessed = true;
                                     $menu->put($user->id, 3);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($this->getMenu(3));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(3));
                                 }
                                 if (strtolower($command) == 4 || strtolower($command) == 'sair' || strtolower($command) == 'exit') {
                                     $updateProcessed = true;
                                     $chatBotStarted->forget($user->id);
                                     $menu->forget($user->id);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você saiu do menu.');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você saiu do menu! Até a próxima.' . "\n\n" . 'Sempre que quiser ativar o menu novamente, basta enviar /menu que ele será ativado.');
                                 }
                             }
                             if ($level == 1) {
                                 if (strtolower($command) == 1 || strtolower($command) == 'registrar' || strtolower($command) == 'register') {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você escolheu registrar consumo de água. Qual a quantidade de água que você consumiu (em ml)?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu registrar consumo de água. Qual a quantidade de água consumida (em ml)?');
                                 }
                                 if (strtolower($command) == 2 || strtolower($command) == 'ver' || strtolower($command) == 'show') {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você escolheu ver consumo de água.' . "\n\n" . $this->showWaterIntakeToday($user) . "\n" . 'O que deseja fazer agora?' . "\n" . '1. Registrar consumo' . "\n" . '2. Ver consumo de hoje' . "\n" . '3. Voltar ao Menu');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu ver consumo de água.' . "\n\n" . $this->showWaterIntakeToday($user) . "\n" . $this->getMenu(1, false));
                                 }
                                 if (strtolower($command) == 3 || strtolower($command) == 'voltar' || strtolower($command) == 'back') {
                                     $updateProcessed = true;
                                     $menu->put($user->id, 0);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($this->getMenu(0));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(0));
                                 }
                                 // Register water intake
                                 if (is_numeric($command) && $command >= 10) {
@@ -135,13 +111,7 @@ class ChatBot implements ShouldQueue
 
                                     if ($object) {
                                         //return back a message to user telegram chat saying that the operation was successful
-                                        $message = TelegramMessage::create()
-                                            ->to($user->telegram_user_id)
-                                            ->content('Registro realizado com sucesso!' . "\n\n" . 'O que deseja fazer agora?' . "\n" . '1. Registrar consumo' . "\n" . '2. Ver consumo de hoje' . "\n" . '3. Voltar ao Menu');
-
-                                        $message->send();
-
-                                        Log::info('User with ID: ' . $user->id . ' has updated Water with amount = ' . $command . ' received from Telegram Bot Callback update id: ' . $updateId);
+                                        $this->sendTelegramMessage($chatId, 'Registro realizado com sucesso!' . "\n\n" . $this->getMenu(1, false));
                                     } else {
                                         Log::error('User with ID: ' . $user->id . ' has tried to update Water with amount = ' . $command . ' received from Telegram Bot Callback update id: ' . $updateId);
                                     }
@@ -150,25 +120,16 @@ class ChatBot implements ShouldQueue
                             if ($level == 2) {
                                 if (strtolower($command) == 1 || strtolower($command) == 'registrar' || strtolower($command) == 'register') {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você escolheu registrar peso. Qual o seu peso atual (em kg)?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu registrar peso. Qual o seu peso (em kg)?');
                                 }
                                 if (strtolower($command) == 2 || strtolower($command) == 'ver' || strtolower($command) == 'show') {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você escolheu ver peso.' . "\n\n" . $this->showWeightToday($user) . "\n" . 'O que deseja fazer agora?' . "\n" . '1. Registrar peso' . "\n" . '2. Ver peso' . "\n" . '3. Voltar ao Menu');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu ver peso.' . "\n\n" . $this->showWeightToday($user) . $this->getMenu(2, false));
                                 }
                                 if (strtolower($command) == 3 || strtolower($command) == 'voltar' || strtolower($command) == 'back') {
                                     $updateProcessed = true;
                                     $menu->put($user->id, 0);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($this->getMenu(0));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(0));
                                 }
                                 // Register weight
                                 if (is_numeric($command) && $command >= 10) {
@@ -186,13 +147,7 @@ class ChatBot implements ShouldQueue
 
                                     if ($object) {
                                         //return back a message to user telegram chat saying that the operation was successful
-                                        $message = TelegramMessage::create()
-                                            ->to($user->telegram_user_id)
-                                            ->content('Registro realizado com sucesso!' . "\n\n" . 'O que deseja fazer agora?' . "\n" . '1. Registrar peso' . "\n" . '2. Ver peso' . "\n" . '3.Voltar ao Menu');
-
-                                        $message->send();
-
-                                        Log::info('User with ID: ' . $user->id . ' has updated Weight with amount = ' . $command . ' received from Telegram Bot Callback update id: ' . $updateId);
+                                        $this->sendTelegramMessage($chatId, 'Registro realizado com sucesso!' . "\n\n" . $this->getMenu(2, false));
                                     } else {
                                         Log::error('User with ID: ' . $user->id . ' has tried to update Weight with amount = ' . $command . ' received from Telegram Bot Callback update id: ' . $updateId);
                                     }
@@ -209,10 +164,7 @@ class ChatBot implements ShouldQueue
                                         Cache::forget('disable_notification_' . $user->id);
                                         $disableNotification = Cache::get('disable_notification_' . $user->id);
                                     }
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($msg . "\n\n" . 'O que deseja fazer agora?' . "\n" . '1. Ativar notificações' . "\n" . '2. Desativar notificações' . "\n" . '3. Voltar ao Menu');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $msg . "\n\n" . $this->getMenu(3, false));
                                 }
                                 if (strtolower($command) == 2 || strtolower($command) == 'desativar' || strtolower($command) == 'deactivate') {
                                     $updateProcessed = true;
@@ -223,18 +175,12 @@ class ChatBot implements ShouldQueue
                                         $msg = 'Notificações desabilitadas até que você as habilite novamente';
                                         Cache::put('disable_notification_' . $user->id, 0);
                                     }
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($msg . "\n\n" . 'O que deseja fazer agora?' . "\n" . '1. Ativar notificações' . "\n" . '2. Desativar notificações' . "\n" . '3. Voltar ao Menu');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $msg . "\n\n" . $this->getMenu(3, false));
                                 }
                                 if (strtolower($command) == 3 || strtolower($command) == 'voltar' || strtolower($command) == 'back') {
                                     $updateProcessed = true;
                                     $menu->put($user->id, 0);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content($this->getMenu(0));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, $this->getMenu(0));
                                 }
                             }
                         }
@@ -246,10 +192,7 @@ class ChatBot implements ShouldQueue
                             $chatBotStarted->push($chatId);
                         }
                         $menu->put($chatId, 0);
-                        $reply = TelegramMessage::create()
-                            ->to($chatId)
-                            ->content('Seja bem vindo! Você ainda não está cadastrado em nosso sistema. Gostaria de se cadastrar agora?' . "\n" . '1. Sim' . "\n" . '2. Não');
-                        $reply->send();
+                        $this->sendTelegramMessage($chatId, 'Seja bem vindo! Você ainda não está cadastrado em nosso sistema. Gostaria de se cadastrar agora?' . "\n" . '1. Sim' . "\n" . '2. Não');
                     }
                     if ($chatBotStarted->contains($chatId)) {
                         if ($menu->has($chatId)) {
@@ -261,34 +204,22 @@ class ChatBot implements ShouldQueue
                                 $menu->forget($chatId);
                                 Cache::forget('register_' . $chatId);
                                 $level = -1;
-                                $reply = TelegramMessage::create()
-                                    ->to($chatId)
-                                    ->content('Cadastro cancelado. Obrigado! Até a próxima.');
-                                $reply->send();
+                                $this->sendTelegramMessage($chatId, 'Cadastro cancelado. Obrigado! Até a próxima.');
                             }
                             if ($level == 0) {
                                 if (strtolower($command) == 1 || strtolower($command) == 'sim' || strtolower($command) == 'yes') {
                                     $updateProcessed = true;
                                     $menu->put($chatId, 1);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você escolheu se cadastrar. Qual o seu nome completo?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu se cadastrar. Qual o seu nome completo?');
                                     Cache::put('register_' . $chatId, new UserResource(new User()));
                                 } elseif (strtolower($command) == 2 || strtolower($command) == 'nao' || strtolower($command) == 'não' || strtolower($command) == 'no') {
                                     $updateProcessed = true;
                                     $chatBotStarted->forget($chatId);
                                     $menu->forget($chatId);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Obrigado! Até a próxima.');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você escolheu não se cadastrar. Até a próxima.');
                                 } elseif (strtolower($command) != 'start') {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Opção inválida. Gostaria de se cadastrar agora?' . "\n" . '1. Sim' . "\n" . '2. Não');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Opção inválida. Gostaria de se cadastrar agora?' . "\n" . '1. Sim' . "\n" . '2. Não');
                                 }
                             }
                             if ($level == 1) {
@@ -298,17 +229,11 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $userResource->name = $command;
                                     $menu->put($chatId, 2);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual o seu e-mail?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual o seu e-mail?');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Nome inválido. Qual o seu nome completo?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Nome inválido. Qual o seu nome completo?');
                                 }
                             }
                             if ($level == 2) {
@@ -318,17 +243,11 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $userResource->email = $command;
                                     $menu->put($chatId, 3);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual a sua senha?' . "\n" . 'A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial. Exemplo: Abc123@!');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual a sua senha?' . "\n" . 'A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial. Exemplo: Abc123@!');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('E-mail inválido. Qual o seu e-mail?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'E-mail inválido. Qual o seu e-mail?');
                                 }
                             }
                             if ($level == 3) {
@@ -338,17 +257,11 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $userResource->password = $command;
                                     $menu->put($chatId, 4);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual o seu telefone? (XX) XXXXX-XXXX');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual o seu telefone? (XX) XXXXX-XXXX');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Senha inválida. Qual a sua senha?' . "\n" . 'A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial. Exemplo: Abc123@!');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Senha inválida. Qual a sua senha?' . "\n" . 'A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial. Exemplo: Abc123@!');
                                 }
                             }
                             if ($level == 4) {
@@ -359,17 +272,11 @@ class ChatBot implements ShouldQueue
                                     $phone = preg_replace('/[^0-9]/', '', $command);
                                     $userResource->phone = $phone;
                                     $menu->put($chatId, 5);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual o seu gênero? (M/F)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual o seu gênero? (M/F)');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Telefone inválido. Qual o seu telefone? (XX) XXXXX-XXXX');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Telefone inválido. Qual o seu telefone? (XX) XXXXX-XXXX');
                                 }
                             }
                             if ($level == 5) {
@@ -380,17 +287,11 @@ class ChatBot implements ShouldQueue
                                     $gender = strtolower($command) == 'm' ? 'M' : 'F';
                                     $userResource->gender = $gender;
                                     $menu->put($chatId, 6);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual a sua data de nascimento? (dd/mm/aaaa)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual a sua data de nascimento? (dd/mm/aaaa)');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Gênero inválido. Qual o seu gênero? (M/F)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Gênero inválido. Qual o seu gênero? (M/F)');
                                 }
                             }
                             if ($level == 6) {
@@ -401,17 +302,11 @@ class ChatBot implements ShouldQueue
                                     $dob = substr($command, 6, 4) . '-' . substr($command, 3, 2) . '-' . substr($command, 0, 2);
                                     $userResource->dob = $dob;
                                     $menu->put($chatId, 7);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual a sua altura? (em cm)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual a sua altura? (em cm)');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Data de nascimento inválida. Qual a sua data de nascimento? (dd/mm/aaaa)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Data de nascimento inválida. Qual a sua data de nascimento? (dd/mm/aaaa)');
                                 }
                             }
                             if ($level == 7) {
@@ -421,17 +316,11 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $userResource->height = $command;
                                     $menu->put($chatId, 8);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual o seu peso? (em kg)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual o seu peso? (em kg)');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Altura inválida. Qual a sua altura? (em cm)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Altura inválida. Qual a sua altura? (em cm)');
                                 }
                             }
                             if ($level == 8) {
@@ -441,17 +330,11 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $userResource->weight = $command;
                                     $menu->put($chatId, 9);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Qual a quantidade de água que você deseja consumir diariamente (em ml)?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Qual a quantidade de água que você deseja consumir diariamente (em ml)?');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Peso inválido. Qual o seu peso? (em kg)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Peso inválido. Qual o seu peso? (em kg)');
                                 }
                             }
                             if ($level == 9) {
@@ -461,17 +344,11 @@ class ChatBot implements ShouldQueue
                                     $updateProcessed = true;
                                     $userResource->daily_water_amount = $command;
                                     $menu->put($chatId, 10);
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Você deseja receber notificações via Telegram? (S/N)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Você deseja receber notificações via Telegram? (S/N)');
                                     Cache::put('register_' . $chatId, $userResource);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Quantidade de água inválida. Qual a quantidade de água que você deseja consumir diariamente (em ml)?');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Quantidade de água inválida. Qual a quantidade de água que você deseja consumir diariamente (em ml)?');
                                 }
                             }
                             if ($level == 10) {
@@ -483,12 +360,12 @@ class ChatBot implements ShouldQueue
                                     if ($notifications) {
                                         $userResource->telegram_user_id = $chatId;
                                         $userResource->telegram_user_deeplink = Uuid::uuid4();
+                                        $subscribeManagement = new NotificationSubscriptionManager();
+                                        $subscribeManagement->subscribe($user, 'App\\Notifications\\WaterIntakeReminderDatabase');
+                                        $subscribeManagement->subscribe($user, 'App\\Notifications\\WaterIntakeReminderTelegram');
                                     }
                                     $user = User::create($userResource->toArray(request()));
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Cadastro realizado com sucesso! Você já pode utilizar o menu de opções.' . "\n" . $this->getMenu(0));
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Cadastro realizado com sucesso!' . "\n\n" . 'O que deseja fazer agora?' . $this->getMenu(0, false));
                                     Cache::forget('register_' . $chatId);
                                     $chatBotStarted->pull($chatId);
                                     $chatBotStarted->push($user->id);
@@ -497,10 +374,7 @@ class ChatBot implements ShouldQueue
                                     Cache::put('menu', $menu);
                                 } else {
                                     $updateProcessed = true;
-                                    $reply = TelegramMessage::create()
-                                        ->to($chatId)
-                                        ->content('Opção inválida. Você deseja receber notificações via Telegram? (S/N)');
-                                    $reply->send();
+                                    $this->sendTelegramMessage($chatId, 'Opção inválida. Você deseja receber notificações via Telegram? (S/N)');
                                 }
                             }
                         }
@@ -514,12 +388,10 @@ class ChatBot implements ShouldQueue
             Cache::put('telegram_updates', $storageUpdates);
             Cache::put('ChatBotStarted', $chatBotStarted);
             Cache::put('menu', $menu);
-            Log::info('ChatBotStarted: ' . json_encode($chatBotStarted->toArray()));
-            Log::info('Menu: ' . json_encode($menu->toArray()));
         }
     }
 
-    public function getMenu($level = 0): string
+    public function getMenu($level = 0, $header = true): string
     {
         $menu = '';
         switch ($level) {
@@ -527,19 +399,36 @@ class ChatBot implements ShouldQueue
                 $menu = 'Escolha uma das opções abaixo digitando o número.' . "\n" . '1. Água' . "\n" . '2. Peso' . "\n" . '3. Notificações' . "\n" . '4. Sair do Menu';
                 break;
             case 1:
-                $menu = 'Você entrou no módulo de controle de água. O que gostaria de fazer?' . "\n" . '1. Registrar consumo' . "\n" . '2. Ver consumo de hoje' . "\n" . '3. Voltar ao Menu';
+                if ($header) {
+                    $menu = 'Você entrou no módulo de controle de água.' . "\n";
+                }
+                $menu .= 'O que gostaria de fazer?' . "\n" . '1. Registrar consumo' . "\n" . '2. Ver consumo de hoje' . "\n" . '3. Voltar ao Menu';
                 break;
             case 2:
-                $menu = 'Você entrou no módulo de controle de peso. O que gostaria de fazer?' . "\n" . '1. Registrar peso' . "\n" . '2. Ver peso' . "\n" . '3. Voltar ao Menu';
+                if ($header) {
+                    $menu = 'Você entrou no módulo de controle de peso.' . "\n";
+                }
+                $menu = 'O que gostaria de fazer?' . "\n" . '1. Registrar peso' . "\n" . '2. Ver peso' . "\n" . '3. Voltar ao Menu';
                 break;
             case 3:
-                $menu = 'Você entrou no módulo de notificações. O que gostaria de fazer?' . "\n" . '1. Ativar notificações' . "\n" . '2. Desativar notificações' . "\n" . '3. Voltar ao Menu';
+                if ($header) {
+                    $menu = 'Você entrou no módulo de notificações.' . "\n";
+                }
+                $menu = 'O que gostaria de fazer?' . "\n" . '1. Ativar notificações' . "\n" . '2. Desativar notificações' . "\n" . '3. Voltar ao Menu';
                 break;
         }
         return $menu;
     }
 
-    function showWaterIntakeToday($user, $asObject = false)
+    public function sendTelegramMessage($chatId, $message)
+    {
+        $reply = TelegramMessage::create()
+            ->to($chatId)
+            ->content($message);
+        $reply->send();
+    }
+
+    public function showWaterIntakeToday($user, $asObject = false)
     {
         $service = '\\App\\Services\\WaterIntakeService';
         $repository = '\\App\\Repositories\\WaterIntakeRepository';
@@ -577,7 +466,7 @@ class ChatBot implements ShouldQueue
         return 'Você ainda não consumiu água hoje.';
     }
 
-    function showWeightToday($user, $asObject = false)
+    public function showWeightToday($user, $asObject = false)
     {
         $service = '\\App\\Services\\WeightControlService';
         $repository = '\\App\\Repositories\\WeightControlRepository';
@@ -593,7 +482,6 @@ class ChatBot implements ShouldQueue
             $message = 'Seu peso atual é de *' . $user->weight . 'kg*.' . "\n\n";
             $message .= 'Detalhes:' . "\n";
             $message .= 'Peso registrado este mês:' . "\n";
-            Log::info('Object: ' . json_encode($object->toArray()));
             foreach ($object as $item) {
                 $message .= $item->created_at->format('d/m/Y') . ' - ';
                 $message .= $item->weight . 'kg' . "\n";
