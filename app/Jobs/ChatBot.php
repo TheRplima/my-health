@@ -404,11 +404,13 @@ class ChatBot implements ShouldQueue
                                     if ($notifications) {
                                         $userResource->telegram_user_id = $chatId;
                                         $userResource->telegram_user_deeplink = Uuid::uuid4();
+                                    }
+                                    $user = User::create($userResource->toArray(request()));
+                                    if ($notifications) {
                                         $subscribeManagement = new NotificationSubscriptionManager();
                                         $subscribeManagement->subscribe($user, 'App\\Notifications\\WaterIntakeReminderDatabase');
                                         $subscribeManagement->subscribe($user, 'App\\Notifications\\WaterIntakeReminderTelegram');
                                     }
-                                    $user = User::create($userResource->toArray(request()));
                                     $this->sendTelegramMessage($chatId, 'Cadastro realizado com sucesso!' . "\n\n" . 'O que deseja fazer agora?' . $this->getMenu(0, false));
                                     Cache::forget('register_' . $chatId);
                                     $chatBotStarted->pull($chatId);
