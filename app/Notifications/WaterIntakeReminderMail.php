@@ -50,16 +50,16 @@ class WaterIntakeReminderMail extends Notification implements SubscribableNotifi
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $waterIntakesToday = $this->user->waterIntakeToday();
+        $waterIntakesToday = $notifiable->waterIntakeToday();
         $lastDrink = $waterIntakesToday->latest()->first();
         $amountIngested = $waterIntakesToday->sum('amount');
-        $goal = $this->user->daily_water_amount;
+        $goal = $notifiable->daily_water_amount;
 
         if ($lastDrink != null) {
-            $body = "<b>" . $this->user->name . "</b> não se esqueça de manter-se hidratado, a última vez que bebeu água foi às <b>" . Carbon::parse($lastDrink->created_at)->toTimeString() . "</b>!
+            $body = "<b>" . $notifiable->name . "</b> não se esqueça de manter-se hidratado, a última vez que bebeu água foi às <b>" . Carbon::parse($lastDrink->created_at)->toTimeString() . "</b>!
             <br />Você ingeriu <b>" . $amountIngested . "ml</b> de água hoje, faltam <b>" . ($goal - $amountIngested) . "ml</b> para atingir sua meta diária de <b>" . $goal . "ml</b>.";
         } else {
-            $body = "<b>" . $this->user->name . "</b> não se esqueça de manter-se hidratado, você ainda não registrou consumo de água hoje!";
+            $body = "<b>" . $notifiable->name . "</b> não se esqueça de manter-se hidratado, você ainda não registrou consumo de água hoje!";
         }
 
         return (new MailMessage)

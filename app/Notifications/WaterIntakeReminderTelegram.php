@@ -51,27 +51,39 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
     public function toTelegram($notifiable)
     {
 
-        $waterIntakeContainers = $this->user->waterIntakeContainers;
-        $waterIntakesToday = $this->user->waterIntakeToday();
+        $waterIntakeContainers = $notifiable->waterIntakeContainers;
+        $waterIntakesToday = $notifiable->waterIntakeToday();
         $lastDrink = $waterIntakesToday->latest()->first();
         $amountIngested = $waterIntakesToday->sum('amount');
-        $goal = $this->user->daily_water_amount;
+        $goal = $notifiable->daily_water_amount;
 
         if ($lastDrink != null) {
             $body = "*Hora de beber água!*
-            \n\n*" . $this->user->name . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
+            \n\n*" . $notifiable->name . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
             \n\nVocê ingeriu *" . $amountIngested . "ml* de água hoje, faltam *" . ($goal - $amountIngested) . "ml* para atingir sua meta diária de *" . $goal . "ml*.";
         } else {
             $body = "*Hora de beber água!*
-            \n\n*" . $this->user->name . "* não se esqueça de se manter hidratado, você ainda não registrou consumo de água hoje!";
+            \n\n*" . $notifiable->name . "* não se esqueça de se manter hidratado, você ainda não registrou consumo de água hoje!";
+        }
+
+        $buttons = [];
+        if (count($waterIntakeContainers) > 0) {
+            $body .= "\n\nEscolha uma das opções abaixo para registrar a ingestão de água:";
+            foreach ($waterIntakeContainers as $container) {
+                $buttons[] = ['Bebi ' . $container->name, 'WaterIntake_create_amount:' . $container->size];
+            }
+        } else {
+            $body .= "\n\nNão há recipientes cadastrados para registrar a ingestão de água. Cadastre um recipiente através do menu enviando /menu e escolhendo a opção *Recipientes*.";
         }
 
         $ret = TelegramMessage::create()
-            ->to($this->user->telegram_user_id)
-            ->content($body . "\n\nEscolha uma das opções abaixo para registrar a ingestão de água:");
+            ->to($notifiable->telegram_user_id)
+            ->content($body);
 
-        foreach ($waterIntakeContainers as $container) {
-            $ret->buttonWithCallback('Bebi 1 ' . $container->name, 'WaterIntake_create_amount:' . $container->size);
+        if ($buttons && count($buttons) > 0) {
+            foreach ($buttons as $button) {
+                $ret->buttonWithCallback($button[0], $button[1]);
+            }
         }
 
         return $ret;
