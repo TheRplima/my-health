@@ -19,17 +19,17 @@ class WaterIntakeReminderDatabase extends Notification implements SubscribableNo
      */
     public function __construct($user)
     {
-        $notifiable = $user;
+        $this->user = $user;
     }
 
     public static function subscribableNotificationType(): string
     {
-        return 'water-intake-reminder-database';
+        return config('water-intake-reminder.subscribable_notification_type.database');
     }
 
     public static function subscribableNotificationTypeDescription(): string
     {
-        return 'Lembrete Ingestão de Água via notificação interna';
+        return config('water-intake-reminder.subscribable_notification_type_description.database');
     }
 
     /**

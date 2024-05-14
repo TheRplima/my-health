@@ -25,12 +25,12 @@ class WaterIntakeReminderMail extends Notification implements SubscribableNotifi
 
     public static function subscribableNotificationType(): string
     {
-        return 'water-intake-reminder-mail';
+        return config('water-intake-reminder.subscribable_notification_type.mail');
     }
 
     public static function subscribableNotificationTypeDescription(): string
     {
-        return 'Lembrete Ingestão de Água via E-mail';
+        return config('water-intake-reminder.subscribable_notification_type_description.mail');
     }
 
     /**

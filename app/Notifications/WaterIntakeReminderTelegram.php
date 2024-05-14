@@ -25,12 +25,12 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
 
     public static function subscribableNotificationType(): string
     {
-        return 'water-intake-reminder-telegram';
+        return config('water-intake-reminder.subscribable_notification_type.telegram');
     }
 
     public static function subscribableNotificationTypeDescription(): string
     {
-        return 'Lembrete Ingestão de Água via Telegram';
+        return config('water-intake-reminder.subscribable_notification_type_description.telegram');
     }
 
     /**
