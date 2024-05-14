@@ -72,16 +72,12 @@ class WaterIntakeReminder implements ShouldQueue
 
             //if last registered drink is less than 1 hour ago, skip
             $lastDrink = $waterIntakesToday->latest()->first();
-            if ($lastDrink) {
-                Log::info('Last drink user ' . $user->id . ': ' . $lastDrink->created_at);
-            }
             if ($lastDrink && now()->diffInMinutes($lastDrink->created_at) < $interval) {
                 continue;
             }
 
             //if last notification sent to user is less than 15 minutes ago, skip
             $lastNotification = Cache::get('lastest_notification_' . $user->id);
-            Log::info('Last notification user ' . $user->id . ': ' . $lastNotification);
             if ($lastNotification && now()->diffInMinutes($lastNotification) < $snooze) {
                 continue;
             }
@@ -92,6 +88,7 @@ class WaterIntakeReminder implements ShouldQueue
             foreach ($user->notificationSubscriptions as $notificationSubscription) {
                 $channel = $subscribeManagement->subscribableNotificationClassFromType($notificationSubscription->type);
                 $user->notify(new $channel($user));
+                Log::info('Reminder sent to user ' . $user->id . ' via ' . $notificationSubscription->type, ['last_drink' => $lastDrink ? $lastDrink->created_at : null, 'last_notification' => $lastNotification ?? null, 'amount_ingested' => $amountIngested ?? 0, 'goal' => $goal]);
             }
 
             // Cache the last notification
