@@ -43,9 +43,6 @@ class WaterIntakeReminder implements ShouldQueue
 
         $users = User::all();
         foreach ($users as $user) {
-            if ($user->id != 1) {
-                continue;
-            }
             //loop at subscribable channels to check if user has any subscription, if not skip
             $hasSubscribable = false;
             foreach ($subscribable_notifications as $subscribable) {
