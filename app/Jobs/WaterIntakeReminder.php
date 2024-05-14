@@ -30,16 +30,25 @@ class WaterIntakeReminder implements ShouldQueue
      */
     public function handle(): void
     {
-        $notication_subscribable = [
-            'water-intake-reminder-mail',
-            'water-intake-reminder-database',
-            'water-intake-reminder-telegram'
-        ];
+        $enabled = config('water-intake-reminder.enabled');
+        $interval = config('water-intake-reminder.interval');
+        $snooze = config('water-intake-reminder.snooze');
+        $start = config('water-intake-reminder.start');
+        $end = config('water-intake-reminder.end');
+        $subscribable_notifications = config('water-intake-reminder.subscribable_notifications');
+
+        if (!$enabled) {
+            return;
+        }
+
         $users = User::all();
         foreach ($users as $user) {
+            if ($user->id != 1) {
+                continue;
+            }
             //loop at subscribable channels to check if user has any subscription, if not skip
             $hasSubscribable = false;
-            foreach ($notication_subscribable as $subscribable) {
+            foreach ($subscribable_notifications as $subscribable) {
                 if ($user->notificationSubscriptions()->forType($subscribable)->exists()) {
                     $hasSubscribable = true;
                     break;
@@ -49,39 +58,39 @@ class WaterIntakeReminder implements ShouldQueue
                 continue;
             }
 
-            // If the user has not set a daily water amount, skip
-            if ($user->daily_water_amount === null) {
-                continue;
-            }
-
             // If the user has disabled notifications, skip
             $disableNotification = Cache::get('disable_notification_' . $user->id);
             if ($disableNotification === 0 || ($disableNotification && now()->diffInMinutes($disableNotification) < 0)) {
                 continue;
             }
 
-            //if last notification sent to user is less than 15 minutes ago, skip
-            $lastNotification = Cache::get('lastest_notification_' . $user->id);
-            if ($lastNotification && now()->diffInMinutes($lastNotification) < 15) {
+            //if now is before 08:00 and after 23:00, skip
+            if (!now()->between($start, $end)) {
                 continue;
             }
 
-            //if last registered drink is less than 1 hour ago, skip
-            $waterIntakesToday = $user->waterIntakeToday();
-            $lastDrink = $waterIntakesToday->latest()->first();
-            if ($lastDrink && $lastDrink->created_at->diffInMinutes(now()) < 60) {
+            // If the user has not set a daily water amount, skip
+            $goal = $user->daily_water_amount;
+            if ($goal === null) {
                 continue;
             }
 
             // Get the amount ingested and the goal of the user. If the amount ingested is more than the goal, skip
+            $waterIntakesToday = $user->waterIntakeToday();
             $amountIngested = $waterIntakesToday->sum('amount');
-            $goal = $user->daily_water_amount;
             if ($amountIngested >= $goal) {
                 continue;
             }
 
-            //if now is before 08:00 and after 23:00, skip
-            if (!now()->between('08:00', '23:00')) {
+            //if last registered drink is less than 1 hour ago, skip
+            $lastDrink = $waterIntakesToday->latest()->first();
+            if ($lastDrink && now()->diffInMinutes($lastDrink->created_at) < $interval) {
+                continue;
+            }
+
+            //if last notification sent to user is less than 15 minutes ago, skip
+            $lastNotification = Cache::get('lastest_notification_' . $user->id);
+            if ($lastNotification && now()->diffInMinutes($lastNotification) < $snooze) {
                 continue;
             }
 
