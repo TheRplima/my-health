@@ -9,6 +9,7 @@ use App\Jobs\TelegramBotCallback;
 use App\Jobs\WaterIntakeReminder;
 use App\Jobs\GetTelegramUpdates;
 use App\Jobs\ChatBot;
+use App\Jobs\ReActiveSnoozedNotifications;
 
 class Kernel extends ConsoleKernel
 {
@@ -22,6 +23,7 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ManageNotificationsDispatcher())->everyTwoSeconds()->withoutOverlapping()->name('manage-notifications-dispatcher');
         $schedule->job(new WaterIntakeReminder())->everyMinute()->withoutOverlapping()->name('water-intake-reminder');
         $schedule->job(new ChatBot())->everyTwoSeconds()->withoutOverlapping()->name('chat-bot');
+        $schedule->job(new ReActiveSnoozedNotifications())->everyMinute()->name('re-active-snoozed-notifications');
     }
 
     /**
