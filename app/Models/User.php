@@ -73,4 +73,89 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(WaterIntakeContainer::class);
     }
+
+    public function notificationSettings()
+    {
+        return $this->hasMany(NotificationSetting::class);
+    }
+
+    public function getNotificationSetting($type)
+    {
+        return $this->notificationSettings()->where('type', $type)->first();
+    }
+
+    public function enableNotification($type)
+    {
+        $notificationSetting = $this->notificationSettings()->where('type', $type)->first();
+        if ($notificationSetting) {
+            $notificationSetting->enable();
+        }
+    }
+
+    public function disableNotification($type)
+    {
+        $notificationSetting = $this->notificationSettings()->where('type', $type)->first();
+        if ($notificationSetting) {
+            $notificationSetting->disable();
+        }
+    }
+
+    public function disableAllNotification()
+    {
+        $notificationSettings = $this->notificationSettings()->get();
+        foreach ($notificationSettings as $notificationSetting) {
+            $notificationSetting->disable();
+        }
+    }
+
+    public function snoozeNotification($type, $minutes)
+    {
+        $notificationSetting = $this->notificationSettings()->where('type', $type)->first();
+        if ($notificationSetting) {
+            $notificationSetting->snooze($minutes);
+        }
+    }
+
+    public function snoozeAllNotification($minutes)
+    {
+        $notificationSettings = $this->notificationSettings()->get();
+        foreach ($notificationSettings as $notificationSetting) {
+            $notificationSetting->snooze($minutes);
+        }
+    }
+
+    public function isNotificationDisabled($type)
+    {
+        $notificationSetting = $this->notificationSettings()->where('type', $type)->first();
+        if ($notificationSetting) {
+            return $notificationSetting->isDisabled();
+        }
+        return false;
+    }
+
+    public function isNotificationSnoozed($type)
+    {
+        $notificationSetting = $this->notificationSettings()->where('type', $type)->first();
+        if ($notificationSetting) {
+            return $notificationSetting->isSnoozed();
+        }
+        return false;
+    }
+
+    public function hasNotificationSubscription($type)
+    {
+        return $this->notificationSubscriptions()->where('type', $type)->exists();
+    }
+
+    public function addNotificationSubscription($type)
+    {
+        $this->notificationSubscriptions()->create([
+            'type' => $type
+        ]);
+    }
+
+    public function removeNotificationSubscription($type)
+    {
+        $this->notificationSubscriptions()->where('type', $type)->delete();
+    }
 }
