@@ -93,7 +93,7 @@ class NotificationSettingRepository
     {
         $notificationSettings = NotificationSetting::where('user_id', $user_id)->get();
         foreach ($notificationSettings as $notificationSetting) {
-            $notificationSetting->snooze($minutes);
+            $this->snooze($notificationSetting->id, $minutes);
         }
     }
 }
