@@ -5,9 +5,8 @@ namespace App\Services;
 use App\Repositories\WaterIntakeContainerRepository;
 use App\Http\Resources\WaterIntakeContainerResource;
 use App\Exceptions\FailedAction;
-use App\Http\Resources\WaterIntakeContainerCollection;
-use App\Models\User;
 use Illuminate\Http\Response;
+use App\Models\User;
 
 class WaterIntakeContainerService
 {
