@@ -111,7 +111,7 @@ class WeightControlService
             $message .= "Peso registrado este mês:\n";
             foreach ($object as $item) {
                 $message .= $item->created_at->format('d/m/Y') . ' \- ';
-                $message .= $item->weight . "kg\n";
+                $message .= str_replace('.', ',', (string) $item->weight) . "kg\n";
             }
 
             return $message;
@@ -130,7 +130,7 @@ class WeightControlService
             $message .= "Peso registrado este ano:\n";
             foreach ($object as $item) {
                 $message .= $item->created_at->format('d/m/Y') . ' \- ';
-                $message .= $item->weight . "kg\n";
+                $message .= str_replace('.', ',', (string) $item->weight) . "kg\n";
             }
 
             return $message;
