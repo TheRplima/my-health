@@ -100,4 +100,42 @@ class WeightControlService
         // Get weight control records by date range
         return $this->weightControlRepository->getWeightControlsByDateRange($userId, $startDate, $endDate,  $max);
     }
+
+    public function showWeightForThisMonth(User $user)
+    {
+        $object = $this->getWeightControlsByMonth($user->id, now()->month);
+
+        if ($object) {
+            $message = "Seu peso atual é de *{$user->weight}kg*\.\n\n";
+            $message .= "Detalhes:\n";
+            $message .= "Peso registrado este mês:\n";
+            foreach ($object as $item) {
+                $message .= $item->created_at->format('d/m/Y') . ' \- ';
+                $message .= $item->weight . "kg\n";
+            }
+
+            return $message;
+        }
+
+        return 'Você não registrou seu peso este mês\.';
+    }
+
+    public function showWeightForThisYear(User $user)
+    {
+        $object = $this->getWeightControlsByYear($user->id, now()->year);
+
+        if ($object) {
+            $message = "Seu peso atual é de *{$user->weight}kg*\.\n\n";
+            $message .= "Detalhes:\n";
+            $message .= "Peso registrado este ano:\n";
+            foreach ($object as $item) {
+                $message .= $item->created_at->format('d/m/Y') . ' \- ';
+                $message .= $item->weight . "kg\n";
+            }
+
+            return $message;
+        }
+
+        return 'Você não registrou seu peso este mês\.';
+    }
 }
