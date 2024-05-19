@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Response;
+use App\Http\Resources\NotificationSettingResource;
 use App\Repositories\NotificationSettingRepository;
 use App\Exceptions\FailedAction;
-use App\Http\Resources\NotificationSettingResource;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Response;
 
 class NotificationSettingService
 {
@@ -81,7 +80,6 @@ class NotificationSettingService
 
             return true;
         } catch (\Exception $e) {
-            Log::error($e->getMessage());
             throw new FailedAction('Failed to enable all notification settings from user. Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
