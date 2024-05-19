@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TelegramUpdateCollection;
 use App\Http\Resources\TelegramUpdateResource;
 use App\Models\User;
+use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Ramsey\Uuid\Uuid;
 use TelegramBot\Api\Client;
 
 class TelegramController extends Controller
@@ -30,6 +34,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user_id',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => null,
@@ -38,6 +43,7 @@ class TelegramController extends Controller
                             ],
                             [
                                 'var_name' => 'amount',
+                                'var_caption' => 'Quantidade de água',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => 'Qual a quantidade de água ingerida (em ml)?',
@@ -54,6 +60,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'model',
                                 'required' => true,
                                 'question' => null,
@@ -77,6 +84,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user_id',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => null,
@@ -85,6 +93,7 @@ class TelegramController extends Controller
                             ],
                             [
                                 'var_name' => 'weight',
+                                'var_caption' => 'Peso',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => 'Qual o seu peso (em kg)?',
@@ -93,6 +102,7 @@ class TelegramController extends Controller
                             ],
                             [
                                 'var_name' => 'date',
+                                'var_caption' => 'Data da medição',
                                 'var_type' => 'date',
                                 'required' => false,
                                 'question' => 'Qual a data da medição (DD/MM/YYYY)?',
@@ -109,6 +119,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'model',
                                 'required' => true,
                                 'question' => null,
@@ -125,6 +136,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'model',
                                 'required' => true,
                                 'question' => null,
@@ -148,6 +160,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user_id',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => null,
@@ -156,6 +169,7 @@ class TelegramController extends Controller
                             ],
                             [
                                 'var_name' => 'name',
+                                'var_caption' => 'Nome do recipiente',
                                 'var_type' => 'string',
                                 'required' => true,
                                 'question' => 'Qual o nome do recipiente?',
@@ -164,6 +178,7 @@ class TelegramController extends Controller
                             ],
                             [
                                 'var_name' => 'size',
+                                'var_caption' => 'Capacidade do recipiente',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => 'Qual capacidade do recipiente? (em ml)',
@@ -180,6 +195,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'model',
                                 'required' => true,
                                 'question' => null,
@@ -203,6 +219,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user_id',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => null,
@@ -219,6 +236,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user_id',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => null,
@@ -235,6 +253,7 @@ class TelegramController extends Controller
                         'params' => [
                             [
                                 'var_name' => 'user_id',
+                                'var_caption' => 'Usuário',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => null,
@@ -243,6 +262,7 @@ class TelegramController extends Controller
                             ],
                             [
                                 'var_name' => 'minutes',
+                                'var_caption' => 'Minutos',
                                 'var_type' => 'int',
                                 'required' => true,
                                 'question' => 'Por quantos minutos deseja suspender as notificações?',
@@ -341,15 +361,11 @@ class TelegramController extends Controller
 
             if (!$this->user) {
                 $this->user = User::where('telegram_user_id', $chatId)->first();
-                if (!$this->user) {
-                    $this->bot->sendMessage($chatId, "Olá! Parece que você ainda não está cadastrado em nosso sistema. Por favor, acesse o link abaixo para se cadastrar.");
-                    $this->bot->sendMessage($chatId, "https://seu-site.com/cadastro?telegram_user_id={$chatId}");
-                    cache()->put('last_update_id', $updateId);
-                    cache()->put('telegram_storage_update_ids', $storageUpdateIds);
-                    cache()->put('telegram_updates', $storageUpdates);
-                    return;
+                if ($this->user) {
+                    cache()->put("user_{$chatId}", $this->user);
                 }
             }
+
 
             if ($text === '/menu') {
                 $this->sendMainMenu($chatId);
@@ -369,6 +385,8 @@ class TelegramController extends Controller
                 $this->handleModuleSelection($chatId, $text, $moduleIndex);
             } elseif (preg_match('/handling_option_\d+_\d+_\d+/', $state) || preg_match('/optional_param_\d+_\d+_\d+/', $state)) {
                 $this->handleParameterInput($chatId, $text);
+            } elseif (strpos($state, 'register_') === 0) {
+                $this->handleRegistration($chatId, $text);
             } else {
                 $this->bot->sendMessage($chatId, "Comando não reconhecido. Por favor, envie /menu para ver as opções.");
             }
@@ -381,6 +399,16 @@ class TelegramController extends Controller
 
     protected function sendMainMenu($chatId)
     {
+        if (!$this->user) {
+            $text = "Olá! Seja bem vindo!\nParece que você ainda não está cadastrado em nosso sistema.\nPara se cadastrar, acesse a opção Cadastrar-se no menu principal.";
+            $this->bot->sendMessage($chatId, $text);
+            $text = "Menu Principal:\n\n";
+            $text .= "C. Cadastrar-se\n";
+            $text .= "0. Sair";
+            $this->bot->sendMessage($chatId, $text);
+            return;
+        }
+
         $text = "Menu Principal:\n\n";
         foreach ($this->modules as $index => $module) {
             $text .= ($index + 1) . ". " . $module['title'] . "\n";
@@ -406,7 +434,13 @@ class TelegramController extends Controller
     {
         if ($text === '0') {
             $this->bot->sendMessage($chatId, "Você saiu do menu! Até a próxima.\n\nSempre que quiser ativar o menu novamente, basta enviar /menu que ele será ativado.");
-            cache()->put("chat_{$chatId}_state", 'idle');
+            cache()->forget("chat_{$chatId}_state");
+            return;
+        }
+
+        if (strtolower($text) === 'c' || strtolower($text) === 'cadastrar' || strtolower($text) === 'cadastrar-se' || strtolower($text) === 'cadastro' || strtolower($text) === 'register') {
+            $this->bot->sendMessage($chatId, "Vamos começar o seu cadastro!\nQual o seu nome completo?");
+            cache()->put("chat_{$chatId}_state", 'register_name');
             return;
         }
 
@@ -451,11 +485,11 @@ class TelegramController extends Controller
                     if ($firstParam['question']) {
                         $this->bot->sendMessage($chatId, $firstParam['question']);
                     } else {
-                        $this->bot->sendMessage($chatId, 'Qual o valor de ' . $firstParam['var_name'] . '?');
+                        $this->bot->sendMessage($chatId, 'Qual o valor de ' . $firstParam['var_caption'] . '?');
                     }
                     cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$option}_{$firstParamIndex}");
                 } else {
-                    $this->bot->sendMessage($chatId, "Deseja fornecer " . $firstParam['var_name'] . "? (sim/não)");
+                    $this->bot->sendMessage($chatId, "Deseja fornecer " . $firstParam['var_caption'] . "? (S/N)");
                     cache()->put("chat_{$chatId}_state", "optional_param_{$moduleIndex}_{$option}_{$firstParamIndex}");
                 }
             } else {
@@ -470,6 +504,12 @@ class TelegramController extends Controller
     protected function handleParameterInput($chatId, $text)
     {
         $state = cache()->get("chat_{$chatId}_state");
+
+        if (strpos($state, 'register_') === 0) {
+            $this->handleRegistration($chatId, $text);
+            return;
+        }
+
         preg_match('/handling_option_(\d+)_(\d+)_(\d+)/', $state, $matches);
         preg_match('/optional_param_(\d+)_(\d+)_(\d+)/', $state, $optionalMatches);
 
@@ -480,7 +520,7 @@ class TelegramController extends Controller
 
         if ($optionalMatches) {
             list(, $moduleIndex, $optionIndex, $paramIndex) = $optionalMatches;
-            if (strtolower($text) === 's') {
+            if (strtolower($text) === 's' || strtolower($text) === 'sim' || strtolower($text) === 'y' || strtolower($text) === 'yes') {
                 // Perguntar pelo valor do parâmetro opcional
                 $paramData = $this->modules[$moduleIndex]['options'][$optionIndex]['params'][$paramIndex];
                 $this->bot->sendMessage($chatId, $paramData['question']);
@@ -534,7 +574,7 @@ class TelegramController extends Controller
                 $this->bot->sendMessage($chatId, $nextParam['question']);
                 cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
             } else {
-                $this->bot->sendMessage($chatId, "Deseja fornecer " . $nextParam['var_name'] . "? (sim/não)");
+                $this->bot->sendMessage($chatId, "Deseja fornecer " . $nextParam['var_caption'] . "? (S/N)");
                 cache()->put("chat_{$chatId}_state", "optional_param_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
             }
         } else {
@@ -543,6 +583,255 @@ class TelegramController extends Controller
             cache()->forget("chat_{$chatId}_state");
             $this->sendModuleMenu($chatId, $moduleIndex, false);
         }
+    }
+
+    protected function handleRegistration($chatId, $text)
+    {
+        $state = cache()->get("chat_{$chatId}_state");
+        $registrationData = cache()->get("chat_{$chatId}_registration_data", []);
+
+        if (strtolower($text) === 'cancel' || strtolower($text) === 'cancelar') {
+            $this->cancelRegistration($chatId);
+            return;
+        }
+
+        if ($state === 'register_name') {
+            // Validação do nome completo
+            if (!preg_match('/^[a-zA-Z]{3,}\s[a-zA-Z]{3,}/', $text)) {
+                $this->bot->sendMessage($chatId, "Nome inválido. Por favor, insira seu nome completo com pelo menos duas palavras e três caracteres cada.");
+                return;
+            }
+
+            $registrationData['name'] = $text;
+            $this->bot->sendMessage($chatId, "Qual o seu email?");
+            cache()->put("chat_{$chatId}_state", 'register_email');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_email') {
+            // Validação do email
+            if (!filter_var($text, FILTER_VALIDATE_EMAIL)) {
+                $this->bot->sendMessage($chatId, "Email inválido. Por favor, insira um email válido.");
+                return;
+            }
+
+            $registrationData['email'] = $text;
+            $this->bot->sendMessage($chatId, "Escolha uma senha. A senha deve conter no mínimo 6 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial.");
+            cache()->put("chat_{$chatId}_state", 'register_password');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_password') {
+            // Validação da senha
+            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/', $text)) {
+                $this->bot->sendMessage($chatId, "Senha inválida. A senha deve conter no mínimo 6 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial.");
+                return;
+            }
+
+            $registrationData['password'] = Hash::make($text);
+            $this->bot->sendMessage($chatId, "Qual a sua data de nascimento? (DD/MM/YYYY) [Opcional] - Envie 'pular' para ignorar.");
+            cache()->put("chat_{$chatId}_state", 'register_dob');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_dob') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['dob'] = null;
+                $this->bot->sendMessage($chatId, "Qual o seu telefone? (Formato: DDD+Número, ex: 11987654321) [Opcional] - Envie 'pular' para ignorar.");
+                cache()->put("chat_{$chatId}_state", 'register_phone');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação do telefone
+            if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $text) || strtotime($text) > strtotime('-14 years')) {
+                $this->bot->sendMessage($chatId, "Data de nascimento inválida. Por favor, insira uma data de nascimento válida (DD/MM/YYYY).");
+                return;
+            }
+
+            //converter data para formato ingles yyyy-mm-dd e salvar
+            $registrationData['dob'] = Carbon::createFromFormat('d/m/Y', $text)->format('Y-m-d');
+            $this->bot->sendMessage($chatId, "Qual o seu telefone? (Formato: DDD+Número, ex: 11987654321) [Opcional] - Envie 'pular' para ignorar.");
+            cache()->put("chat_{$chatId}_state", 'register_phone');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_phone') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['phone'] = null;
+                $this->bot->sendMessage($chatId, "Qual o seu gênero? (M/F) [Opcional] - Envie 'pular' para ignorar.");
+                cache()->put("chat_{$chatId}_state", 'register_gender');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação do telefone
+            if (!empty($text) && !preg_match('/^\d{10,11}$/', $text)) {
+                $this->bot->sendMessage($chatId, "Telefone inválido. Por favor, insira um telefone válido com DDD (10 ou 11 dígitos).");
+                return;
+            }
+
+            $registrationData['phone'] = $text;
+            $this->bot->sendMessage($chatId, "Qual o seu gênero? (M/F) [Opcional] - Envie 'pular' para ignorar.");
+            cache()->put("chat_{$chatId}_state", 'register_gender');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_gender') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['gender'] = null;
+                $this->bot->sendMessage($chatId, "Qual a sua altura? (em cm) [Opcional] - Envie 'pular' para ignorar.");
+                cache()->put("chat_{$chatId}_state", 'register_height');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação do gênero
+            if (!empty($text) && !in_array(strtoupper($text), ['M', 'F'])) {
+                $this->bot->sendMessage($chatId, "Gênero inválido. Por favor, insira M ou F.");
+                return;
+            }
+
+            $registrationData['gender'] = strtoupper($text);
+            $this->bot->sendMessage($chatId, "Qual a sua altura? (em cm) [Opcional] - Envie 'pular' para ignorar.");
+            cache()->put("chat_{$chatId}_state", 'register_height');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_height') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['height'] = null;
+                $this->bot->sendMessage($chatId, "Qual o seu peso? (em kg) [Opcional] - Envie 'pular' para ignorar.");
+                cache()->put("chat_{$chatId}_state", 'register_weight');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação da altura
+            if (!empty($text) && !preg_match('/^\d+$/', $text)) {
+                $this->bot->sendMessage($chatId, "Altura inválida. Por favor, insira um valor válido em cm.");
+                return;
+            }
+
+            $registrationData['height'] = (int)$text;
+            $this->bot->sendMessage($chatId, "Qual o seu peso? (em kg) [Opcional] - Envie 'pular' para ignorar.");
+            cache()->put("chat_{$chatId}_state", 'register_weight');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_weight') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['weight'] = null;
+                $this->bot->sendMessage($chatId, "Qual a quantidade de água que você deseja consumir diariamente? (em ml) [Opcional] - Envie 'pular' para ignorar.");
+                cache()->put("chat_{$chatId}_state", 'register_notifications');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação do peso
+            if (!empty($text) && !preg_match('/^\d+$/', $text)) {
+                $this->bot->sendMessage($chatId, "Peso inválido. Por favor, insira um valor válido em kg.");
+                return;
+            }
+
+            $registrationData['weight'] = (int)$text;
+            $this->bot->sendMessage($chatId, "Qual o seu nível de atividade física? [Opcional] - Envie 'pular' para ignorar.\n1. Sedentário\n2. Pouco ativo (1 a 3 vezes na semana)\n3. Ativo (3 a 5 vezes na semana)\n4. Muito ativo (Todos os dias)\n5. Extremamente ativo (Atleta profiissional)");
+            cache()->put("chat_{$chatId}_state", 'register_activity_level');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_activity_level') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['activity_level'] = null;
+                $this->bot->sendMessage($chatId, "Qual a quantidade de água que você deseja consumir diariamente? (em ml) [Opcional] - Envie 'pular' para ignorar.");
+                cache()->put("chat_{$chatId}_state", 'register_daily_water_amount');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação do nível de atividade física
+            if (!empty($text) && !in_array((int)$text, [1, 2, 3, 4, 5])) {
+                $this->bot->sendMessage($chatId, "Nível de atividade física inválido.\n1. Sedentário\n2. Pouco ativo (1 a 3 vezes na semana)\n3. Ativo (3 a 5 vezes na semana)\n4. Muito ativo (Todos os dias)\n5. Extremamente ativo (Atleta profiissional)");
+                return;
+            }
+            $niveis = [
+                1 => 0.2,
+                2 => 0.375,
+                3 => 0.55,
+                4 => 0.725,
+                5 => 0.9
+            ];
+            $registrationData['activity_level'] = $niveis[(int)$text];
+            $this->bot->sendMessage($chatId, "Qual a quantidade de água que você deseja consumir diariamente? (em ml) [Opcional] - Envie 'pular' para ignorar.");
+            cache()->put("chat_{$chatId}_state", 'register_daily_water_amount');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_daily_water_amount') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['daily_water_amount'] = null;
+                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
+                cache()->put("chat_{$chatId}_state", 'register_notifications');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            // Validação do consumo diário de água
+            if (!empty($text) && !preg_match('/^\d+$/', $text)) {
+                $this->bot->sendMessage($chatId, "Quantidade inválida. Por favor, insira um valor válido em ml.");
+                return;
+            }
+
+            $registrationData['daily_water_amount'] = (int)$text;
+            $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
+            cache()->put("chat_{$chatId}_state", 'register_notifications');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state === 'register_notifications') {
+            // Validação das notificações
+            if (!in_array(strtoupper($text), ['S', 'N'])) {
+                $this->bot->sendMessage($chatId, "Opção inválida. Por favor, insira S ou N.");
+                return;
+            }
+
+            $registrationData['notifications'] = strtoupper($text) === 'S';
+
+            if ($registrationData['notifications']) {
+                $registrationData['telegram_user_id'] = $chatId;
+                $registrationData['telegram_user_deeplink'] = Uuid::uuid4();
+            }
+            $this->user = User::create($registrationData);
+            cache()->put("user_{$chatId}", $this->user);
+            if ($registrationData['notifications']) {
+                $subscribeManagement = new NotificationSubscriptionManager();
+                $subscribeManagement->subscribe($this->user, 'App\\Notifications\\WaterIntakeReminderDatabase');
+                $subscribeManagement->subscribe($this->user, 'App\\Notifications\\WaterIntakeReminderTelegram');
+            }
+
+            $this->bot->sendMessage($chatId, "Cadastro concluído com sucesso! Bem-vindo(a), " . $registrationData['name'] . "!");
+            $this->sendMainMenu($chatId);
+            cache()->put("chat_{$chatId}_state", 'main_menu');
+            cache()->forget("chat_{$chatId}_registration_data");
+        }
+    }
+
+    public function cancelRegistration($chatId)
+    {
+        $this->bot->sendMessage($chatId, "Cadastro cancelado. Para se cadastrar, envie /menu e selecione a opção Cadastrar-se.");
+        cache()->forget("chat_{$chatId}_state");
+        cache()->forget("chat_{$chatId}_registration_data");
+        return;
     }
 
     protected function getAutomaticValue($paramData)
