@@ -8,6 +8,7 @@ use App\Models\User;
 use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Uuid;
 use TelegramBot\Api\Client;
 
@@ -354,8 +355,9 @@ class TelegramController extends Controller
             }
 
             $message = $update->getMessage();
-            $text = $message->getText();
             $chatId = $message->getChat()->getId();
+            $text = $message->getText();
+            $photo = $message->getPhoto();
 
             $this->user = cache()->get("user_{$chatId}", null);
 
@@ -386,7 +388,7 @@ class TelegramController extends Controller
             } elseif (preg_match('/handling_option_\d+_\d+_\d+/', $state) || preg_match('/optional_param_\d+_\d+_\d+/', $state)) {
                 $this->handleParameterInput($chatId, $text);
             } elseif (strpos($state, 'register_') === 0) {
-                $this->handleRegistration($chatId, $text);
+                $this->handleRegistration($chatId, $text, $photo);
             } else {
                 $this->bot->sendMessage($chatId, "Comando não reconhecido. Por favor, envie /menu para ver as opções.");
             }
@@ -585,7 +587,7 @@ class TelegramController extends Controller
         }
     }
 
-    protected function handleRegistration($chatId, $text)
+    protected function handleRegistration($chatId, $text, $photo = null)
     {
         $state = cache()->get("chat_{$chatId}_state");
         $registrationData = cache()->get("chat_{$chatId}_registration_data", []);
@@ -779,8 +781,8 @@ class TelegramController extends Controller
         if ($state === 'register_daily_water_amount') {
             if (strtolower($text) === 'pular') {
                 $registrationData['daily_water_amount'] = null;
-                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
-                cache()->put("chat_{$chatId}_state", 'register_notifications');
+                $this->bot->sendMessage($chatId, "Deseja fornecer uma foto de perfil? (S/N)");
+                cache()->put("chat_{$chatId}_state", 'register_profile_photo');
                 cache()->put("chat_{$chatId}_registration_data", $registrationData);
                 return;
             }
@@ -792,6 +794,78 @@ class TelegramController extends Controller
             }
 
             $registrationData['daily_water_amount'] = (int)$text;
+            $this->bot->sendMessage($chatId, "Deseja fornecer uma foto de perfil? (S/N)");
+            cache()->put("chat_{$chatId}_state", 'register_profile_photo');
+            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            return;
+        }
+
+        if ($state == 'register_profile_photo') {
+            if (strtolower($text) === 'pular') {
+                $registrationData['profile_photo'] = null;
+                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
+                cache()->put("chat_{$chatId}_state", 'register_notifications');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+
+            if (strtolower($text) === 's' || strtolower($text) === 'sim' || strtolower($text) === 'y' || strtolower($text) === 'yes') {
+                $telegramUserProfilePhotoUrl = $this->getUserProfilePhotos($chatId);
+                if ($telegramUserProfilePhotoUrl) {
+                    $this->bot->sendMessage($chatId, "Notamos que você possui uma foto de perfil aqui no Telegram, gostaria de utilizar esta foto como foto de perfil no nosso sistema? (S/N)");
+                    cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload_telegram');
+                    return;
+                } else {
+                    $this->bot->sendMessage($chatId, "Por favor, envie uma foto de perfil.");
+                    cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload');
+                    return;
+                }
+            } else {
+                $registrationData['profile_photo'] = null;
+                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
+                cache()->put("chat_{$chatId}_state", 'register_notifications');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            }
+        }
+
+        if ($state === 'register_profile_photo_upload_telegram') {
+            if (strtolower($text) === 's' || strtolower($text) === 'sim' || strtolower($text) === 'y' || strtolower($text) === 'yes') {
+                $telegramUserProfilePhotoUrl = $this->getUserProfilePhotos($chatId);
+                if (!$telegramUserProfilePhotoUrl) {
+                    $this->bot->sendMessage($chatId, "Não conseguimos encontrar sua foto de perfil. Por favor, envie uma foto de perfil.");
+                    cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload');
+                    return;
+                }
+
+                $registrationData['image'] = $this->savePhoto($telegramUserProfilePhotoUrl);
+                if (!$registrationData['image']) {
+                    $this->bot->sendMessage($chatId, "Ocorreu um erro ao salvar a foto. Por favor, tente novamente.");
+                    return;
+                }
+                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
+                cache()->put("chat_{$chatId}_state", 'register_notifications');
+                cache()->put("chat_{$chatId}_registration_data", $registrationData);
+                return;
+            } else {
+                $this->bot->sendMessage($chatId, "Por favor, envie uma foto de perfil.");
+                cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload');
+                return;
+            }
+        }
+
+        if ($state === 'register_profile_photo_upload') {
+            if (!$photo) {
+                $this->bot->sendMessage($chatId, "Por favor, envie uma foto válida.");
+                return;
+            }
+            $photo = $this->getUserSentPhotos($photo);
+            $registrationData['image'] = $this->savePhoto($photo);
+            if (!$registrationData['image']) {
+                $this->bot->sendMessage($chatId, "Ocorreu um erro ao salvar a foto. Por favor, tente novamente.");
+                return;
+            }
+
             $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
             cache()->put("chat_{$chatId}_state", 'register_notifications');
             cache()->put("chat_{$chatId}_registration_data", $registrationData);
@@ -826,12 +900,60 @@ class TelegramController extends Controller
         }
     }
 
-    public function cancelRegistration($chatId)
+    protected function cancelRegistration($chatId)
     {
         $this->bot->sendMessage($chatId, "Cadastro cancelado. Para se cadastrar, envie /menu e selecione a opção Cadastrar-se.");
         cache()->forget("chat_{$chatId}_state");
         cache()->forget("chat_{$chatId}_registration_data");
         return;
+    }
+
+    protected  function getUserProfilePhotos($chatId)
+    {
+        $userProfilePhotos = $this->bot->getUserProfilePhotos($chatId);
+        $photos = $userProfilePhotos->getPhotos();
+        if (count($photos) > 0) {
+            $photo = $photos[0][count($photos[0]) - 1];
+            $fileId = $photo->getFileId();
+            $file = $this->bot->getFile($fileId);
+            $filePath = $file->getFilePath();
+            $photoUrl = $this->bot->getFileUrl($filePath);
+
+            return $photoUrl . '/' . $filePath;
+        }
+
+        return null;
+    }
+
+    protected  function getUserSentPhotos($photos)
+    {
+        if (count($photos) > 0) {
+            $photo = $photos[count($photos) - 1];
+            $fileId = $photo->getFileId();
+            $file = $this->bot->getFile($fileId);
+            $filePath = $file->getFilePath();
+            $photoUrl = $this->bot->getFileUrl($filePath);
+
+            return $photoUrl . '/' . $filePath;
+        }
+
+        return null;
+    }
+
+    protected function savePhoto($photo)
+    {
+        if ($photo) {
+            $contents = file_get_contents($photo);
+            $extension = pathinfo($photo, PATHINFO_EXTENSION);
+            $extension = $extension == 'jpeg' ? 'jpg' : $extension;
+            $name = md5(Carbon::now()) . '.' . $extension;
+            $filePath = 'images/users/' . $name;
+            Storage::disk('public')->put($filePath, $contents);
+
+            return $filePath;
+        }
+
+        return null;
     }
 
     protected function getAutomaticValue($paramData)
