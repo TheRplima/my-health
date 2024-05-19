@@ -32,7 +32,7 @@ class TelegramBotCallback implements ShouldQueue
      */
     public function handle(): void
     {
-        $storageUpdates = Cache::get('telegram_updates') ?? new TelegramUpdateCollection([]);
+        $storageUpdates = new TelegramUpdateCollection(cache()->get('telegram_updates') ?? []);
         if (count($storageUpdates->toArray(request())) > 0) {
             $updates = $storageUpdates->getItemsByType('callback_query');
             $updateProcessed = false;
