@@ -18,11 +18,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->job(new GetTelegramUpdates())->everySecond()->withoutOverlapping()->name('get-telegram-updates');
+        $schedule->command('telegram:poll-updates')->withoutOverlapping()->everySecond();
         $schedule->job(new TelegramBotCallback())->everyTwoSeconds()->withoutOverlapping()->name('telegram-bot-callback');
-        $schedule->job(new ManageNotificationsDispatcher())->everyTwoSeconds()->withoutOverlapping()->name('manage-notifications-dispatcher');
         $schedule->job(new WaterIntakeReminder())->everyMinute()->withoutOverlapping()->name('water-intake-reminder');
-        $schedule->job(new ChatBot())->everyTwoSeconds()->withoutOverlapping()->name('chat-bot');
         $schedule->job(new ReActiveSnoozedNotifications())->everyMinute()->name('re-active-snoozed-notifications');
     }
 
