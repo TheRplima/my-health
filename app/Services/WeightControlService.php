@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\WeightControlRepository;
 use App\Exceptions\FailedAction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Response;
 
 class WeightControlService
@@ -19,6 +20,12 @@ class WeightControlService
     public function create(array $data)
     {
         try {
+            if (isset($data['date']) && $data['date']) {
+                $date = Carbon::createFromFormat('Y-m-d', $data['date']);
+                $data['created_at'] = $date;
+                $data['updated_at'] = $date;
+                unset($data['date']);
+            }
             $weightControl = $this->weightControlRepository->create($data);
 
             $user = User::find($data['user_id']);
