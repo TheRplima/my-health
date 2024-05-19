@@ -381,7 +381,7 @@ class TelegramController extends Controller
 
     protected function sendMainMenu($chatId)
     {
-        $text = "Menu Principal:\n";
+        $text = "Menu Principal:\n\n";
         foreach ($this->modules as $index => $module) {
             $text .= ($index + 1) . ". " . $module['title'] . "\n";
         }
@@ -389,10 +389,10 @@ class TelegramController extends Controller
         $this->bot->sendMessage($chatId, $text);
     }
 
-    protected function sendModuleMenu($chatId, $moduleIndex)
+    protected function sendModuleMenu($chatId, $moduleIndex, $showHeader = true)
     {
         $module = $this->modules[$moduleIndex];
-        $text = "{$module['description']}\n";
+        $text = $showHeader ? "{$module['title']}\n{$module['description']}\n\n" : "O que deseja fazer agora?\n\n";
         foreach ($module['options'] as $key => $option) {
             $text .= "{$key}. {$option['title']}\n";
         }
@@ -412,15 +412,7 @@ class TelegramController extends Controller
 
         $index = (int) $text - 1;
         if (isset($this->modules[$index])) {
-            $module = $this->modules[$index];
-            $text = "{$module['description']}\n";
-            foreach ($module['options'] as $key => $option) {
-                $text .= "{$key}. {$option['title']}\n";
-            }
-            $text .= "0. Voltar ao Menu Principal";
-            $this->bot->sendMessage($chatId, $text);
-            cache()->put("chat_{$chatId}_state", 'module_menu');
-            cache()->put("chat_{$chatId}_selected_module", $index);
+            $this->sendModuleMenu($chatId, $index, true);
         } else {
             $this->bot->sendMessage($chatId, "Opção inválida. Por favor, selecione uma opção válida.");
         }
@@ -468,7 +460,7 @@ class TelegramController extends Controller
                 }
             } else {
                 $this->executeOptionFunction($chatId, $module['service'], $optionData['function'], $params, $optionData);
-                $this->sendModuleMenu($chatId, $moduleIndex);
+                $this->sendModuleMenu($chatId, $moduleIndex, false);
             }
         } else {
             $this->bot->sendMessage($chatId, "Opção inválida. Por favor, selecione uma opção válida.");
@@ -549,7 +541,7 @@ class TelegramController extends Controller
             $this->executeOptionFunction($chatId, $module['service'], $option['function'], $params, $option);
             cache()->forget("chat_{$chatId}_params");
             cache()->forget("chat_{$chatId}_state");
-            $this->sendModuleMenu($chatId, $moduleIndex);
+            $this->sendModuleMenu($chatId, $moduleIndex, false);
         }
     }
 
