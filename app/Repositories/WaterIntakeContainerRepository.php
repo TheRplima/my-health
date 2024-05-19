@@ -40,8 +40,8 @@ class WaterIntakeContainerRepository
         return null;
     }
 
-    public function findByUser(int $userId): array
+    public function findByUser(int $userId)
     {
-        return WaterIntakeContainer::where('user_id', $userId)->get()->toArray();
+        return WaterIntakeContainer::where('user_id', $userId)->get();
     }
 }
