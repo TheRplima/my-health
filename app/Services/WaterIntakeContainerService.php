@@ -6,6 +6,7 @@ use App\Repositories\WaterIntakeContainerRepository;
 use App\Http\Resources\WaterIntakeContainerResource;
 use App\Exceptions\FailedAction;
 use App\Http\Resources\WaterIntakeContainerCollection;
+use App\Models\User;
 use Illuminate\Http\Response;
 
 class WaterIntakeContainerService
@@ -63,6 +64,25 @@ class WaterIntakeContainerService
     public function getWaterIntakeContainersByUser(int $userId)
     {
         // Get all water intake containers by user
-        return new WaterIntakeContainerCollection($this->waterIntakeContainerRepository->findByUser($userId));
+        return $this->waterIntakeContainerRepository->findByUser($userId);
+    }
+
+    public function showWaterIntakeContainers(User $user)
+    {
+        $object = $this->getWaterIntakeContainersByUser($user->id);
+
+        if ($object) {
+            $list = '';
+            foreach ($object as $item) {
+                $list .= $item->name . ' \- ';
+                $list .= $item->size . 'ml' . "\n";
+            }
+
+            $message = 'Detalhes:' . "\n" . $list;
+
+            return $message;
+        }
+
+        return 'Você ainda não possui recipientes de água cadastrados\.';
     }
 }
