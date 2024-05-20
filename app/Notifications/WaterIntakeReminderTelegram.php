@@ -50,7 +50,6 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
      */
     public function toTelegram($notifiable)
     {
-
         $waterIntakeContainers = $notifiable->waterIntakeContainers;
         $waterIntakesToday = $notifiable->waterIntakeToday();
         $lastDrink = $waterIntakesToday->latest()->first();
@@ -59,11 +58,11 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
 
         if ($lastDrink != null) {
             $body = "*Hora de beber água!*
-            \n\n*" . $notifiable->name . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
+            \n\n*" . ucfirst(explode(' ', $notifiable->name)[0]) . "* não se esqueça de se manter hidratado, última vez que bebeu água foi às *" . Carbon::parse($lastDrink->created_at)->toTimeString() . "*!
             \n\nVocê ingeriu *" . $amountIngested . "ml* de água hoje, faltam *" . ($goal - $amountIngested) . "ml* para atingir sua meta diária de *" . $goal . "ml*.";
         } else {
             $body = "*Hora de beber água!*
-            \n\n*" . $notifiable->name . "* não se esqueça de se manter hidratado, você ainda não registrou consumo de água hoje!";
+            \n\n*" . ucfirst(explode(' ', $notifiable->name)[0]) . "* não se esqueça de se manter hidratado, você ainda não registrou consumo de água hoje!";
         }
 
         $buttons = [];
