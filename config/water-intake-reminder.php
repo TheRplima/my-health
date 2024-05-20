@@ -2,10 +2,13 @@
 
 return [
     'enabled' => env('WATER_INTAKE_REMINDER_ENABLED', true),
-    'interval' => env('WATER_INTAKE_REMINDER_INTERVAL', 60),
-    'snooze' => env('WATER_INTAKE_REMINDER_SNOOZE', 15),
-    'start' => env('WATER_INTAKE_REMINDER_START', '08:00'),
-    'end' => env('WATER_INTAKE_REMINDER_END', '23:00'),
+
+    'default_notification_setting' => [
+        'interval' => env('WATER_INTAKE_REMINDER_INTERVAL', 60),
+        'snooze' => env('WATER_INTAKE_REMINDER_SNOOZE', 15),
+        'start' => env('WATER_INTAKE_REMINDER_START', '08:00'),
+        'end' => env('WATER_INTAKE_REMINDER_END', '23:00'),
+    ],
 
     'subscribable_notification_type' => [
         'mail' => 'water-intake-reminder-mail',

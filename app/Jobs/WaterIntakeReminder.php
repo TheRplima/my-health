@@ -30,6 +30,7 @@ class WaterIntakeReminder implements ShouldQueue
     public function handle(): void
     {
         $enabled = config('water-intake-reminder.enabled');
+        $defaultNotificationSetting = (object)config('water-intake-reminder.default_notification_setting');
 
         if (!$enabled) {
             return;
@@ -42,6 +43,9 @@ class WaterIntakeReminder implements ShouldQueue
                 $type = $notificationSubscription->type;
                 $channel = $subscribeManagement->subscribableNotificationClassFromType($type);
                 $notificationSetting = $user->getNotificationSetting($type);
+                if (!$notificationSetting) {
+                    $notificationSetting = $defaultNotificationSetting;
+                }
 
                 if ($user->isNotificationDisabled($type) || $user->isNotificationSnoozed($type)) {
                     continue;
