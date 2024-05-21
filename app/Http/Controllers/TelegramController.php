@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TelegramUpdateCollection;
 use App\Http\Resources\TelegramUpdateResource;
 use App\Models\User;
+use App\Repositories\NotificationSettingRepository;
+use App\Services\NotificationSettingService;
 use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -335,7 +337,7 @@ class TelegramController extends Controller
 
         if ($state === 'register_name') {
             // Validação do nome completo
-            if (!preg_match('/^[a-zA-Z]{2,}\s[a-zA-Z]{2,}/', $text)) {
+            if (!$this->validateParam(['var_type' => 'full_name'], $text)) {
                 $this->bot->sendMessage($chatId, "Nome inválido. Por favor, insira seu nome completo com pelo menos duas palavras e dois caracteres cada.");
                 return;
             }
@@ -349,7 +351,7 @@ class TelegramController extends Controller
 
         if ($state === 'register_email') {
             // Validação do email
-            if (!filter_var($text, FILTER_VALIDATE_EMAIL)) {
+            if (!$this->validateParam(['var_type' => 'email'], $text)) {
                 $this->bot->sendMessage($chatId, "Email inválido. Por favor, insira um email válido.");
                 return;
             }
@@ -363,7 +365,7 @@ class TelegramController extends Controller
 
         if ($state === 'register_password') {
             // Validação da senha
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/', $text)) {
+            if (!$this->validateParam(['var_type' => 'password'], $text)) {
                 $this->bot->sendMessage($chatId, "Senha inválida. A senha deve conter no mínimo 6 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial.");
                 return;
             }
@@ -394,9 +396,16 @@ class TelegramController extends Controller
                 $subscribeManagement = new NotificationSubscriptionManager();
                 $subscribeManagement->subscribe($this->user, 'App\\Notifications\\WaterIntakeReminderDatabase');
                 $subscribeManagement->subscribe($this->user, 'App\\Notifications\\WaterIntakeReminderTelegram');
+                $notificationSettingService = new NotificationSettingService(new NotificationSettingRepository());
+                $payload = config('water-intake-reminder.default_notification_setting');
+                $payload['user_id'] = $this->user->id;
+                $payload['type'] = 'water-intake-reminder-telegram';
+                $notificationSettingService->create($payload);
+                $payload['type'] = 'water-intake-reminder-database';
+                $notificationSettingService->create($payload);
             }
-
-            $this->bot->sendMessage($chatId, "Cadastro concluído com sucesso! Bem-vindo(a), " . $registrationData['name'] . "!");
+            $name = ucfirst(explode(' ', $registrationData['name'])[0]);
+            $this->bot->sendMessage($chatId, "Cadastro concluído com sucesso! Bem-vindo(a), " . $name . "!");
             $this->sendMainMenu($chatId);
             cache()->put("chat_{$chatId}_state", 'main_menu');
             cache()->forget("chat_{$chatId}_registration_data");
@@ -506,11 +515,13 @@ class TelegramController extends Controller
             $date = \DateTime::createFromFormat('d/m/Y', $text);
             return $date && $date->format('d/m/Y') === $text ? $text : false;
         } elseif ($param['var_type'] === 'email') {
-            return filter_var($text, FILTER_VALIDATE_EMAIL) ? $text : false;
+            $isValid = filter_var($text, FILTER_VALIDATE_EMAIL);
+            $isUnique = User::where('email', $text)->count() === 0;
+            return $isValid && $isUnique ? $text : false;
         } elseif ($param['var_type'] === 'phone') {
             return preg_match('/^\d{10,11}$/', $text) ? $text : false;
         } elseif ($param['var_type'] === 'full_name') {
-            return preg_match('/^[a-zA-Z]{2,}\s[a-zA-Z]{2,}/', $text) ? $text : false;
+            return preg_match('/^([a-zA-ZÀ-ÿ]{2,}(\s+[a-zA-ZÀ-ÿ]{2,})+)$/u', trim($text)) ? $text : false;
         } elseif ($param['var_type'] === 'password') {
             return preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/', $text) ? $text : false;
         } elseif ($param['var_type'] === 'birthday') {
