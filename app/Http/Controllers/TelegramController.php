@@ -17,321 +17,16 @@ class TelegramController extends Controller
     protected $bot;
     protected $modules;
     protected $user;
+    protected $modName;
+    protected $modDescription;
+    protected $modAuthor;
 
     public function __construct()
     {
         $this->bot = new Client(env('TELEGRAM_BOT_TOKEN'));
-        $this->modules = [
-            [
-                'title' => 'Controle de ingestão de água',
-                'description' => 'Mantenha-se hidratado registrando diariamente o seu consumo de água.',
-                'service' => 'WaterIntake',
-                'options' => [
-                    1 => [
-                        'title' => 'Registrar quantidade de água ingerida',
-                        'function' => 'create',
-                        'return_type' => 'message',
-                        'return_message' => 'Consumo de água registrado com sucesso.',
-                        'params' => [
-                            [
-                                'var_name' => 'user_id',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'user'
-                            ],
-                            [
-                                'var_name' => 'amount',
-                                'var_caption' => 'Quantidade de água',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => 'Qual a quantidade de água ingerida (em ml)?',
-                                'error_message' => 'Quantidade inválida. Qual a quantidade de água ingerida (em ml)?',
-                                'get_value_from' => 'response'
-                            ],
-                        ]
-                    ],
-                    2 => [
-                        'title' => 'Ver consumo de hoje',
-                        'function' => 'showWaterIntakeToday',
-                        'return_type' => 'result',
-                        'return_message' => null,
-                        'params' => [
-                            [
-                                'var_name' => 'user',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'model',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'user'
-                            ],
-                        ]
-                    ],
-                ]
-            ],
-            [
-                'title' => 'Controle de Peso',
-                'description' => 'Mantenha-se saudável registrando periodicamente o seu peso e acompanhando sua evolução.',
-                'service' => 'WeightControl',
-                'options' => [
-                    1 => [
-                        'title' => 'Registrar peso',
-                        'function' => 'create',
-                        'return_type' => 'message',
-                        'return_message' => 'Peso registrado com sucesso.',
-                        'params' => [
-                            [
-                                'var_name' => 'user_id',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'system'
-                            ],
-                            [
-                                'var_name' => 'weight',
-                                'var_caption' => 'Peso',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => 'Qual o seu peso (em kg)?',
-                                'error_message' => 'Peso inválido. Qual o seu peso (em kg)?',
-                                'get_value_from' => 'response'
-                            ],
-                            [
-                                'var_name' => 'date',
-                                'var_caption' => 'Data da medição',
-                                'var_type' => 'date',
-                                'required' => false,
-                                'question' => 'Qual a data da medição (DD/MM/YYYY)?',
-                                'error_message' => 'Data inválida. Qual a data da medição (DD/MM/YYYY)?',
-                                'get_value_from' => 'response'
-                            ]
-                        ]
-                    ],
-                    2 => [
-                        'title' => 'Ver peso do mês',
-                        'function' => 'showWeightForThisMonth',
-                        'return_type' => 'result',
-                        'return_message' => null,
-                        'params' => [
-                            [
-                                'var_name' => 'user',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'model',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'user'
-                            ],
-                        ]
-                    ],
-                    3 => [
-                        'title' => 'Ver peso do ano',
-                        'function' => 'showWeightForThisYear',
-                        'return_type' => 'result',
-                        'return_message' => null,
-                        'params' => [
-                            [
-                                'var_name' => 'user',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'model',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'user'
-                            ],
-                        ]
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Recipientes de Água',
-                'description' => 'Gerencie seus recipientes de água facilitando o registro do consumo diário.',
-                'service' => 'WaterIntakeContainer',
-                'options' => [
-                    1 => [
-                        'title' => 'Cadastrar recipiente',
-                        'function' => 'create',
-                        'return_type' => 'message',
-                        'return_message' => 'Recipiente cadastrado com sucesso.',
-                        'params' => [
-                            [
-                                'var_name' => 'user_id',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'system'
-                            ],
-                            [
-                                'var_name' => 'name',
-                                'var_caption' => 'Nome do recipiente',
-                                'var_type' => 'string',
-                                'required' => true,
-                                'question' => 'Qual o nome do recipiente?',
-                                'error_message' => 'Nome inválido. Qual o nome do recipiente?',
-                                'get_value_from' => 'response'
-                            ],
-                            [
-                                'var_name' => 'size',
-                                'var_caption' => 'Capacidade do recipiente',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => 'Qual capacidade do recipiente? (em ml)',
-                                'error_message' => 'Capacidade inválida. Qual capacidade do recipiente? (em ml)',
-                                'get_value_from' => 'response'
-                            ],
-                        ]
-                    ],
-                    2 => [
-                        'title' => 'Ver recipientes cadastrados',
-                        'function' => 'showWaterIntakeContainers',
-                        'return_type' => 'result',
-                        'return_message' => null,
-                        'params' => [
-                            [
-                                'var_name' => 'user',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'model',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'user'
-                            ],
-                        ]
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Controle de notificações',
-                'description' => 'Gerencie suas notificações de forma simples e rápida.',
-                'service' => 'NotificationSetting',
-                'options' => [
-                    1 => [
-                        'title' => 'Ativar notificações',
-                        'function' => 'enableAllFromUser',
-                        'return_type' => 'message',
-                        'return_message' => 'Notificações ativadas com sucesso.',
-                        'params' => [
-                            [
-                                'var_name' => 'user_id',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'system'
-                            ]
-                        ]
-                    ],
-                    2 => [
-                        'title' => 'Desativar notificações',
-                        'function' => 'disableAllFromUser',
-                        'return_type' => 'message',
-                        'return_message' => 'Notificações desativadas com sucesso.',
-                        'params' => [
-                            [
-                                'var_name' => 'user_id',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'system'
-                            ],
-                        ]
-                    ],
-                    3 => [
-                        'title' => 'Suspender notificações',
-                        'function' => 'snoozeAllFromUser',
-                        'return_type' => 'message',
-                        'return_message' => 'Notificações suspensas com sucesso.',
-                        'params' => [
-                            [
-                                'var_name' => 'user_id',
-                                'var_caption' => 'Usuário',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => null,
-                                'error_message' => null,
-                                'get_value_from' => 'system'
-                            ],
-                            [
-                                'var_name' => 'minutes',
-                                'var_caption' => 'Minutos',
-                                'var_type' => 'int',
-                                'required' => true,
-                                'question' => 'Por quantos minutos deseja suspender as notificações?',
-                                'error_message' => 'Valor inválido. Por quantos minutos deseja suspender as notificações?',
-                                'get_value_from' => 'response'
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            // [
-            //     'title' => 'Controle de Atividades Físicas',
-            //     'description' => 'Registre suas atividades físicas diárias e acompanhe sua evolução.',
-            //     'service' => 'PhysicalActivity',
-            //     'options' => [
-            //         1 => [
-            //             'title' => 'Registrar atividade física',
-            //             'function' => 'create',
-            //             'return_type' => 'message',
-            //             'return_message' => 'Atividade física registrada com sucesso.',
-            //             'params' => [
-            //                 [
-            //                     'var_name' => 'user_id',
-            //                     'var_type' => 'int',
-            //                     'required' => true,
-            //                     'question' => null,
-            //                     'error_message' => null,
-            //                     'get_value_from' => 'system'
-            //                 ],
-            //                 [
-            //                     'var_name' => 'activity',
-            //                     'var_type' => 'string',
-            //                     'required' => true,
-            //                     'question' => 'Qual a atividade realizada?',
-            //                     'error_message' => 'Atividade inválida. Qual a atividade realizada?',
-            //                     'get_value_from' => 'response'
-            //                 ],
-            //                 [
-            //                     'var_name' => 'duration',
-            //                     'var_type' => 'int',
-            //                     'required' => true,
-            //                     'question' => 'Qual a duração da atividade (em minutos)?',
-            //                     'error_message' => 'Duração inválida. Qual a duração da atividade (em minutos)?',
-            //                     'get_value_from' => 'response'
-            //                 ],
-            //                 [
-            //                     'var_name' => 'date',
-            //                     'var_type' => 'date',
-            //                     'required' => false,
-            //                     'question' => 'Qual a data da atividade (DD/MM/YYYY)?',
-            //                     'error_message' => 'Data inválida. Qual a data da atividade (DD/MM/YYYY)?',
-            //                     'get_value_from' => 'response'
-            //                 ]
-            //             ]
-            //         ],
-            //         2 => [
-            //             'title' => 'Ver atividades físicas',
-            //             'function' => 'showPhysicalActivitiesForThisMonth',
-            //             'return_type' => 'result',
-            //             'return_message' => null,
-            //             'params' => [
-            //                 [
-            //                     'var_name' => 'user',
-            //                     'var_type' => 'model',
-            //                     'required' => true,
-            //                     'question' => null,
-            // ]
-        ];
+        $this->modules = config('my-health-telegram-bot.modules');
+        $this->modName = config('my-health-telegram-bot.name');
+        $this->modDescription = config('my-health-telegram-bot.description');
     }
 
     public function handleUpdates()
@@ -358,7 +53,6 @@ class TelegramController extends Controller
             $chatId = $message->getChat()->getId();
             $text = $message->getText();
             $photo = $message->getPhoto();
-
             $this->user = cache()->get("user_{$chatId}", null);
 
             if (!$this->user) {
@@ -369,12 +63,17 @@ class TelegramController extends Controller
             }
 
 
-            if ($text === '/menu') {
-                $this->sendMainMenu($chatId);
-                cache()->put("chat_{$chatId}_state", 'main_menu');
+            if ($text === '/menu' || $text === '/start') {
                 cache()->put('last_update_id', $updateId);
                 cache()->put('telegram_storage_update_ids', $storageUpdateIds);
                 cache()->put('telegram_updates', $storageUpdates);
+                if (!$this->user) {
+                    $this->sendAnonymousMainMenu($chatId);
+                    cache()->put("chat_{$chatId}_state", 'anonymous_main_menu');
+                    return;
+                }
+                $this->sendMainMenu($chatId);
+                cache()->put("chat_{$chatId}_state", 'main_menu');
                 return;
             }
 
@@ -382,11 +81,13 @@ class TelegramController extends Controller
 
             if ($state === 'main_menu') {
                 $this->handleMainMenuSelection($chatId, $text);
+            } elseif ($state === 'anonymous_main_menu') {
+                $this->handleAnonymousMainMenuSelection($chatId, $text);
             } elseif ($state === 'module_menu') {
                 $moduleIndex = cache()->get("chat_{$chatId}_selected_module");
                 $this->handleModuleSelection($chatId, $text, $moduleIndex);
             } elseif (preg_match('/handling_option_\d+_\d+_\d+/', $state) || preg_match('/optional_param_\d+_\d+_\d+/', $state)) {
-                $this->handleParameterInput($chatId, $text);
+                $this->handleParameterInput($chatId, $text, $photo);
             } elseif (strpos($state, 'register_') === 0) {
                 $this->handleRegistration($chatId, $text, $photo);
             } else {
@@ -401,20 +102,35 @@ class TelegramController extends Controller
 
     protected function sendMainMenu($chatId)
     {
-        if (!$this->user) {
-            $text = "Olá! Seja bem vindo!\nParece que você ainda não está cadastrado em nosso sistema.\nPara se cadastrar, acesse a opção Cadastrar-se no menu principal.";
-            $this->bot->sendMessage($chatId, $text);
-            $text = "Menu Principal:\n\n";
-            $text .= "C. Cadastrar-se\n";
-            $text .= "0. Sair";
-            $this->bot->sendMessage($chatId, $text);
-            return;
-        }
-
         $text = "Menu Principal:\n\n";
         foreach ($this->modules as $index => $module) {
-            $text .= ($index + 1) . ". " . $module['title'] . "\n";
+            if ($module['enabled']) { // Adicionado para verificar se a opção está habilitada
+                $text .= ($index + 1) . ". " . $module['title'] . "\n";
+            }
         }
+        $text .= "0. Sair";
+        $this->bot->sendMessage($chatId, $text);
+    }
+
+    protected function sendAnonymousMainMenu($chatId, $welcome = true)
+    {
+        if ($welcome) {
+            $user_name = $this->getTelegramProfile($chatId, 'firstName');
+            if (!$user_name) {
+                $user_name = 'Usuário';
+            }
+            $text = "Olá, {$user_name}! Bem-vindo ao {$this->modName}!\n\n";
+            $this->bot->sendMessage($chatId, $text);
+
+            sleep(1);
+            $text = "Parece que você ainda não está cadastrado em nosso sistema.\nCadastre-se gratuitamente para começar a usar nossos serviços!\n\n";
+            $this->bot->sendMessage($chatId, $text);
+
+            sleep(1);
+        }
+        $text = "Para começar, por favor, selecione uma das opções abaixo:\n\n";
+        $text .= "1. Cadastrar-se\n";
+        $text .= "2. Sobre\n";
         $text .= "0. Sair";
         $this->bot->sendMessage($chatId, $text);
     }
@@ -435,14 +151,7 @@ class TelegramController extends Controller
     protected function handleMainMenuSelection($chatId, $text)
     {
         if ($text === '0') {
-            $this->bot->sendMessage($chatId, "Você saiu do menu! Até a próxima.\n\nSempre que quiser ativar o menu novamente, basta enviar /menu que ele será ativado.");
-            cache()->forget("chat_{$chatId}_state");
-            return;
-        }
-
-        if (strtolower($text) === 'c' || strtolower($text) === 'cadastrar' || strtolower($text) === 'cadastrar-se' || strtolower($text) === 'cadastro' || strtolower($text) === 'register') {
-            $this->bot->sendMessage($chatId, "Vamos começar o seu cadastro!\nQual o seu nome completo?");
-            cache()->put("chat_{$chatId}_state", 'register_name');
+            $this->exitMenu($chatId);
             return;
         }
 
@@ -452,6 +161,33 @@ class TelegramController extends Controller
         } else {
             $this->bot->sendMessage($chatId, "Opção inválida. Por favor, selecione uma opção válida.");
         }
+    }
+
+    protected function handleAnonymousMainMenuSelection($chatId, $text)
+    {
+        if ($text === '0') {
+            $this->exitMenu($chatId);
+            return;
+        }
+
+        if ($text === '1' && !$this->user) {
+            $this->bot->sendMessage($chatId, "Vamos começar o seu cadastro!\nQual o seu nome completo?");
+            cache()->put("chat_{$chatId}_state", 'register_name');
+            return;
+        }
+
+        if ($text === '2') {
+            $this->bot->sendMessage($chatId, "Sobre o {$this->modName}\n\n{$this->modDescription}");
+
+            sleep(1);
+            $this->sendAnonymousMainMenu($chatId, false);
+
+            return;
+        }
+
+        $this->bot->sendMessage($chatId, "Opção inválida. Por favor, selecione uma opção válida.");
+
+        return;
     }
 
     protected function handleModuleSelection($chatId, $text, $moduleIndex)
@@ -503,7 +239,7 @@ class TelegramController extends Controller
         }
     }
 
-    protected function handleParameterInput($chatId, $text)
+    protected function handleParameterInput($chatId, $text, $photo = null)
     {
         $state = cache()->get("chat_{$chatId}_state");
 
@@ -544,7 +280,7 @@ class TelegramController extends Controller
         $paramData = $option['params'][$paramIndex];
 
         if ($paramData['get_value_from'] === 'response') {
-            $value = $this->validateParam($paramData, $text);
+            $value = $this->validateParam($paramData, $text, $photo);
             if ($value === false) {
                 $this->bot->sendMessage($chatId, $paramData['error_message']);
                 return;
@@ -599,8 +335,8 @@ class TelegramController extends Controller
 
         if ($state === 'register_name') {
             // Validação do nome completo
-            if (!preg_match('/^[a-zA-Z]{3,}\s[a-zA-Z]{3,}/', $text)) {
-                $this->bot->sendMessage($chatId, "Nome inválido. Por favor, insira seu nome completo com pelo menos duas palavras e três caracteres cada.");
+            if (!preg_match('/^[a-zA-Z]{2,}\s[a-zA-Z]{2,}/', $text)) {
+                $this->bot->sendMessage($chatId, "Nome inválido. Por favor, insira seu nome completo com pelo menos duas palavras e dois caracteres cada.");
                 return;
             }
 
@@ -633,239 +369,6 @@ class TelegramController extends Controller
             }
 
             $registrationData['password'] = Hash::make($text);
-            $this->bot->sendMessage($chatId, "Qual a sua data de nascimento? (DD/MM/YYYY) [Opcional] - Envie 'pular' para ignorar.");
-            cache()->put("chat_{$chatId}_state", 'register_dob');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_dob') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['dob'] = null;
-                $this->bot->sendMessage($chatId, "Qual o seu telefone? (Formato: DDD+Número, ex: 11987654321) [Opcional] - Envie 'pular' para ignorar.");
-                cache()->put("chat_{$chatId}_state", 'register_phone');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação do telefone
-            if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $text) || strtotime($text) > strtotime('-14 years')) {
-                $this->bot->sendMessage($chatId, "Data de nascimento inválida. Por favor, insira uma data de nascimento válida (DD/MM/YYYY).");
-                return;
-            }
-
-            //converter data para formato ingles yyyy-mm-dd e salvar
-            $registrationData['dob'] = Carbon::createFromFormat('d/m/Y', $text)->format('Y-m-d');
-            $this->bot->sendMessage($chatId, "Qual o seu telefone? (Formato: DDD+Número, ex: 11987654321) [Opcional] - Envie 'pular' para ignorar.");
-            cache()->put("chat_{$chatId}_state", 'register_phone');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_phone') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['phone'] = null;
-                $this->bot->sendMessage($chatId, "Qual o seu gênero? (M/F) [Opcional] - Envie 'pular' para ignorar.");
-                cache()->put("chat_{$chatId}_state", 'register_gender');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação do telefone
-            if (!empty($text) && !preg_match('/^\d{10,11}$/', $text)) {
-                $this->bot->sendMessage($chatId, "Telefone inválido. Por favor, insira um telefone válido com DDD (10 ou 11 dígitos).");
-                return;
-            }
-
-            $registrationData['phone'] = $text;
-            $this->bot->sendMessage($chatId, "Qual o seu gênero? (M/F) [Opcional] - Envie 'pular' para ignorar.");
-            cache()->put("chat_{$chatId}_state", 'register_gender');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_gender') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['gender'] = null;
-                $this->bot->sendMessage($chatId, "Qual a sua altura? (em cm) [Opcional] - Envie 'pular' para ignorar.");
-                cache()->put("chat_{$chatId}_state", 'register_height');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação do gênero
-            if (!empty($text) && !in_array(strtoupper($text), ['M', 'F'])) {
-                $this->bot->sendMessage($chatId, "Gênero inválido. Por favor, insira M ou F.");
-                return;
-            }
-
-            $registrationData['gender'] = strtoupper($text);
-            $this->bot->sendMessage($chatId, "Qual a sua altura? (em cm) [Opcional] - Envie 'pular' para ignorar.");
-            cache()->put("chat_{$chatId}_state", 'register_height');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_height') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['height'] = null;
-                $this->bot->sendMessage($chatId, "Qual o seu peso? (em kg) [Opcional] - Envie 'pular' para ignorar.");
-                cache()->put("chat_{$chatId}_state", 'register_weight');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação da altura
-            if (!empty($text) && !preg_match('/^\d+$/', $text)) {
-                $this->bot->sendMessage($chatId, "Altura inválida. Por favor, insira um valor válido em cm.");
-                return;
-            }
-
-            $registrationData['height'] = (int)$text;
-            $this->bot->sendMessage($chatId, "Qual o seu peso? (em kg) [Opcional] - Envie 'pular' para ignorar.");
-            cache()->put("chat_{$chatId}_state", 'register_weight');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_weight') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['weight'] = null;
-                $this->bot->sendMessage($chatId, "Qual a quantidade de água que você deseja consumir diariamente? (em ml) [Opcional] - Envie 'pular' para ignorar.");
-                cache()->put("chat_{$chatId}_state", 'register_notifications');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação do peso
-            if (!empty($text) && !preg_match('/^\d+$/', $text)) {
-                $this->bot->sendMessage($chatId, "Peso inválido. Por favor, insira um valor válido em kg.");
-                return;
-            }
-
-            $registrationData['weight'] = (int)$text;
-            $this->bot->sendMessage($chatId, "Qual o seu nível de atividade física? [Opcional] - Envie 'pular' para ignorar.\n1. Sedentário\n2. Pouco ativo (1 a 3 vezes na semana)\n3. Ativo (3 a 5 vezes na semana)\n4. Muito ativo (Todos os dias)\n5. Extremamente ativo (Atleta profiissional)");
-            cache()->put("chat_{$chatId}_state", 'register_activity_level');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_activity_level') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['activity_level'] = null;
-                $this->bot->sendMessage($chatId, "Qual a quantidade de água que você deseja consumir diariamente? (em ml) [Opcional] - Envie 'pular' para ignorar.");
-                cache()->put("chat_{$chatId}_state", 'register_daily_water_amount');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação do nível de atividade física
-            if (!empty($text) && !in_array((int)$text, [1, 2, 3, 4, 5])) {
-                $this->bot->sendMessage($chatId, "Nível de atividade física inválido.\n1. Sedentário\n2. Pouco ativo (1 a 3 vezes na semana)\n3. Ativo (3 a 5 vezes na semana)\n4. Muito ativo (Todos os dias)\n5. Extremamente ativo (Atleta profiissional)");
-                return;
-            }
-            $niveis = [
-                1 => 0.2,
-                2 => 0.375,
-                3 => 0.55,
-                4 => 0.725,
-                5 => 0.9
-            ];
-            $registrationData['activity_level'] = $niveis[(int)$text];
-            $this->bot->sendMessage($chatId, "Qual a quantidade de água que você deseja consumir diariamente? (em ml) [Opcional] - Envie 'pular' para ignorar.");
-            cache()->put("chat_{$chatId}_state", 'register_daily_water_amount');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state === 'register_daily_water_amount') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['daily_water_amount'] = null;
-                $this->bot->sendMessage($chatId, "Deseja fornecer uma foto de perfil? (S/N)");
-                cache()->put("chat_{$chatId}_state", 'register_profile_photo');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            // Validação do consumo diário de água
-            if (!empty($text) && !preg_match('/^\d+$/', $text)) {
-                $this->bot->sendMessage($chatId, "Quantidade inválida. Por favor, insira um valor válido em ml.");
-                return;
-            }
-
-            $registrationData['daily_water_amount'] = (int)$text;
-            $this->bot->sendMessage($chatId, "Deseja fornecer uma foto de perfil? (S/N)");
-            cache()->put("chat_{$chatId}_state", 'register_profile_photo');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
-            return;
-        }
-
-        if ($state == 'register_profile_photo') {
-            if (strtolower($text) === 'pular') {
-                $registrationData['profile_photo'] = null;
-                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
-                cache()->put("chat_{$chatId}_state", 'register_notifications');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-
-            if (strtolower($text) === 's' || strtolower($text) === 'sim' || strtolower($text) === 'y' || strtolower($text) === 'yes') {
-                $telegramUserProfilePhotoUrl = $this->getUserProfilePhotos($chatId);
-                if ($telegramUserProfilePhotoUrl) {
-                    $this->bot->sendMessage($chatId, "Notamos que você possui uma foto de perfil aqui no Telegram, gostaria de utilizar esta foto como foto de perfil no nosso sistema? (S/N)");
-                    cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload_telegram');
-                    return;
-                } else {
-                    $this->bot->sendMessage($chatId, "Por favor, envie uma foto de perfil.");
-                    cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload');
-                    return;
-                }
-            } else {
-                $registrationData['profile_photo'] = null;
-                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
-                cache()->put("chat_{$chatId}_state", 'register_notifications');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            }
-        }
-
-        if ($state === 'register_profile_photo_upload_telegram') {
-            if (strtolower($text) === 's' || strtolower($text) === 'sim' || strtolower($text) === 'y' || strtolower($text) === 'yes') {
-                $telegramUserProfilePhotoUrl = $this->getUserProfilePhotos($chatId);
-                if (!$telegramUserProfilePhotoUrl) {
-                    $this->bot->sendMessage($chatId, "Não conseguimos encontrar sua foto de perfil. Por favor, envie uma foto de perfil.");
-                    cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload');
-                    return;
-                }
-
-                $registrationData['image'] = $this->savePhoto($telegramUserProfilePhotoUrl);
-                if (!$registrationData['image']) {
-                    $this->bot->sendMessage($chatId, "Ocorreu um erro ao salvar a foto. Por favor, tente novamente.");
-                    return;
-                }
-                $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
-                cache()->put("chat_{$chatId}_state", 'register_notifications');
-                cache()->put("chat_{$chatId}_registration_data", $registrationData);
-                return;
-            } else {
-                $this->bot->sendMessage($chatId, "Por favor, envie uma foto de perfil.");
-                cache()->put("chat_{$chatId}_state", 'register_profile_photo_upload');
-                return;
-            }
-        }
-
-        if ($state === 'register_profile_photo_upload') {
-            if (!$photo) {
-                $this->bot->sendMessage($chatId, "Por favor, envie uma foto válida.");
-                return;
-            }
-            $photo = $this->getUserSentPhotos($photo);
-            $registrationData['image'] = $this->savePhoto($photo);
-            if (!$registrationData['image']) {
-                $this->bot->sendMessage($chatId, "Ocorreu um erro ao salvar a foto. Por favor, tente novamente.");
-                return;
-            }
-
             $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
             cache()->put("chat_{$chatId}_state", 'register_notifications');
             cache()->put("chat_{$chatId}_registration_data", $registrationData);
@@ -906,6 +409,17 @@ class TelegramController extends Controller
         cache()->forget("chat_{$chatId}_state");
         cache()->forget("chat_{$chatId}_registration_data");
         return;
+    }
+
+    protected function getTelegramProfile($chatId, $field)
+    {
+        $profile = $this->bot->getChat($chatId);
+        $fieldValue = $profile->{'get' . ucfirst($field)}();
+        if ($profile && $fieldValue) {
+            return $fieldValue;
+        }
+
+        return null;
     }
 
     protected  function getUserProfilePhotos($chatId)
@@ -982,7 +496,7 @@ class TelegramController extends Controller
         return null;
     }
 
-    protected function validateParam($param, $text)
+    protected function validateParam($param, $text, $photo = null)
     {
         if ($param['var_type'] === 'int') {
             return filter_var($text, FILTER_VALIDATE_INT) !== false ? (int) $text : false;
@@ -991,7 +505,26 @@ class TelegramController extends Controller
         } elseif ($param['var_type'] === 'date') {
             $date = \DateTime::createFromFormat('d/m/Y', $text);
             return $date && $date->format('d/m/Y') === $text ? $text : false;
+        } elseif ($param['var_type'] === 'email') {
+            return filter_var($text, FILTER_VALIDATE_EMAIL) ? $text : false;
+        } elseif ($param['var_type'] === 'phone') {
+            return preg_match('/^\d{10,11}$/', $text) ? $text : false;
+        } elseif ($param['var_type'] === 'full_name') {
+            return preg_match('/^[a-zA-Z]{2,}\s[a-zA-Z]{2,}/', $text) ? $text : false;
+        } elseif ($param['var_type'] === 'password') {
+            return preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/', $text) ? $text : false;
+        } elseif ($param['var_type'] === 'birthday') {
+            return preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $text) && strtotime($text) < strtotime('-14 years') ? $text : false;
+        } elseif ($param['var_type'] === 'gender') {
+            return in_array(strtoupper($text), ['M', 'F']) ? strtoupper($text) : false;
+        } elseif ($param['var_type'] === 'activity_level') {
+            return in_array((int)$text, [1, 2, 3, 4, 5]) ? (int)$text : false;
+        } elseif ($param['var_type'] === 'photo') {
+            $photo = $this->getUserSentPhotos($photo);
+            $photo = $this->savePhoto($photo);
+            return $photo ? $photo : false;
         }
+
         return false;
     }
 
@@ -1023,5 +556,15 @@ class TelegramController extends Controller
         } catch (\Exception $e) {
             $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação. Erro: " . $e->getMessage());
         }
+    }
+
+
+    protected function exitMenu($chatId)
+    {
+        $this->bot->sendMessage($chatId, "Você saiu do menu! Até a próxima.\n\nSempre que quiser ativar o menu novamente, basta enviar /menu que ele será ativado.");
+        cache()->forget("chat_{$chatId}_state");
+        cache()->forget("user_{$chatId}");
+
+        return;
     }
 }
