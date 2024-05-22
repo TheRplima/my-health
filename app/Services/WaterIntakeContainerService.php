@@ -73,7 +73,7 @@ class WaterIntakeContainerService
         if ($object) {
             $list = '';
             foreach ($object as $item) {
-                $list .= $item->name . ' \- ';
+                $list .= $item->name . ' - ';
                 $list .= $item->size . 'ml' . "\n";
             }
 
@@ -82,6 +82,6 @@ class WaterIntakeContainerService
             return $message;
         }
 
-        return 'Você ainda não possui recipientes de água cadastrados\.';
+        return 'Você ainda não possui recipientes de água cadastrados.';
     }
 }
