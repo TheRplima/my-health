@@ -15,5 +15,9 @@ class DatabaseSeeder extends Seeder
         $this->call(UserSeeder::class);
         // $this->call(WaterIntakeSeeder::class);
         // $this->call(WeightControlSeeder::class);
+        // $this->call(WaterIntakeContainerSeeder::class);
+        // $this->call(PhysicalActivityCategorySeeder::class);
+        // $this->call(PhysicalActivitySportSeeder::class);
+        // $this->call(PhysicalActivitySeeder::class);
     }
 }

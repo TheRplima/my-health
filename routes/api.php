@@ -6,8 +6,10 @@ use App\Http\Controllers\WaterIntakeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PhysicalActivityCategoryController;
+use App\Http\Controllers\PhysicalActivityController;
+use App\Http\Controllers\PhysicalActivitySportController;
 use Illuminate\Support\Facades\Route;
-use NotificationChannels\Telegram\TelegramUpdates;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,4 +67,26 @@ Route::controller(NotificationController::class)->group(function () {
     Route::patch('/mark-notification/{id}', 'markNotification');
     Route::patch('/mark-notifications', 'markAllNotifications');
     Route::delete('/notification/{id}', 'destroy');
+});
+
+//route group with  'prefix' => 'physical-activities' to create a group of routes involving physical activities, categories and sports
+Route::group(['prefix' => 'physical-activities'], function () {
+    Route::controller(PhysicalActivityCategoryController::class)->group(function () {
+        Route::get('categories', 'index');
+        Route::post('category', 'store');
+        Route::put('category/{id}', 'update');
+        Route::delete('category/{id}', 'destroy');
+    });
+    Route::controller(PhysicalActivitySportController::class)->group(function () {
+        Route::get('sports', 'index');
+        Route::post('sport', 'store');
+        Route::put('sport/{id}', 'update');
+        Route::delete('sport/{id}', 'destroy');
+    });
+    Route::controller(PhysicalActivityController::class)->group(function () {
+        Route::get('activities', 'index');
+        Route::post('activity', 'store');
+        Route::put('activity/{id}', 'update');
+        Route::delete('activity/{id}', 'destroy');
+    });
 });
