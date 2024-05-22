@@ -318,7 +318,7 @@ $modversion['modules'] = array(
     ],
     [
         'enabled' => true,
-        'title' => 'Controle de ingestão de água',
+        'title' => 'Ingestão de água',
         'description' => 'Mantenha-se hidratado registrando diariamente o seu consumo de água.',
         'service' => 'WaterIntake',
         'options' => [
@@ -365,11 +365,63 @@ $modversion['modules'] = array(
                     ],
                 ]
             ],
+            3 => [
+                'title' => 'Cadastrar recipiente',
+                'function' => 'createWaterIntakeContainer',
+                'return_type' => 'message',
+                'return_message' => 'Recipiente cadastrado com sucesso.',
+                'params' => [
+                    [
+                        'var_name' => 'user_id',
+                        'var_caption' => 'Usuário',
+                        'var_type' => 'int',
+                        'required' => true,
+                        'question' => null,
+                        'error_message' => null,
+                        'get_value_from' => 'system'
+                    ],
+                    [
+                        'var_name' => 'name',
+                        'var_caption' => 'Nome do recipiente',
+                        'var_type' => 'string',
+                        'required' => true,
+                        'question' => 'Qual o nome do recipiente?',
+                        'error_message' => 'Nome inválido. Qual o nome do recipiente?',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'size',
+                        'var_caption' => 'Capacidade do recipiente',
+                        'var_type' => 'int',
+                        'required' => true,
+                        'question' => 'Qual capacidade do recipiente? (em ml)',
+                        'error_message' => 'Capacidade inválida. Qual capacidade do recipiente? (em ml)',
+                        'get_value_from' => 'response'
+                    ],
+                ]
+            ],
+            4 => [
+                'title' => 'Ver recipientes cadastrados',
+                'function' => 'showWaterIntakeContainers',
+                'return_type' => 'result',
+                'return_message' => null,
+                'params' => [
+                    [
+                        'var_name' => 'user',
+                        'var_caption' => 'Usuário',
+                        'var_type' => 'model',
+                        'required' => true,
+                        'question' => null,
+                        'error_message' => null,
+                        'get_value_from' => 'user'
+                    ],
+                ]
+            ]
         ]
     ],
     [
         'enabled' => true,
-        'title' => 'Controle de Peso',
+        'title' => 'Peso',
         'description' => 'Mantenha-se saudável registrando periodicamente o seu peso e acompanhando sua evolução.',
         'service' => 'WeightControl',
         'options' => [
@@ -444,108 +496,22 @@ $modversion['modules'] = array(
             ]
         ]
     ],
-    // [
-    //     'enabled' => false,
-    //     'title' => 'Controle de Atividades Físicas',
-    //     'description' => 'Registre suas atividades físicas diárias e acompanhe sua evolução.',
-    //     'service' => 'PhysicalActivity',
-    //     'options' => [
-    //         1 => [
-    //             'title' => 'Registrar atividade física',
-    //             'function' => 'create',
-    //             'return_type' => 'message',
-    //             'return_message' => 'Atividade física registrada com sucesso.',
-    //             'params' => [
-    //                 [
-    //                     'var_name' => 'user_id',
-    //                     'var_type' => 'int',
-    //                     'var_caption' => 'Usuário',
-    //                     'required' => true,
-    //                     'question' => null,
-    //                     'error_message' => null,
-    //                     'get_value_from' => 'system'
-    //                 ],
-    //                 [
-    //                     'var_name' => 'activity',
-    //                     'var_type' => 'string',
-    //                     'var_caption' => 'Atividade',
-    //                     'required' => true,
-    //                     'question' => 'Qual a atividade realizada?',
-    //                     'error_message' => 'Atividade inválida. Qual a atividade realizada?',
-    //                     'get_value_from' => 'response'
-    //                 ],
-    //                 [
-    //                     'var_name' => 'duration',
-    //                     'var_type' => 'int',
-    //                     'var_caption' => 'Duração',
-    //                     'required' => true,
-    //                     'question' => 'Qual a duração da atividade (em minutos)?',
-    //                     'error_message' => 'Duração inválida. Qual a duração da atividade (em minutos)?',
-    //                     'get_value_from' => 'response'
-    //                 ],
-    //                 [
-    //                     'var_name' => 'date',
-    //                     'var_type' => 'date',
-    //                     'var_caption' => 'Data',
-    //                     'required' => false,
-    //                     'question' => 'Qual a data da atividade (DD/MM/YYYY)?',
-    //                     'error_message' => 'Data inválida. Qual a data da atividade (DD/MM/YYYY)?',
-    //                     'get_value_from' => 'response'
-    //                 ]
-    //             ]
-    //         ],
-    //         2 => [
-    //             'title' => 'Ver atividades físicas da semana',
-    //             'function' => 'showPhysicalActivitiesForThisWeek',
-    //             'return_type' => 'result',
-    //             'return_message' => null,
-    //             'params' => [
-    //                 [
-    //                     'var_name' => 'user',
-    //                     'var_caption' => 'Usuário',
-    //                     'var_type' => 'model',
-    //                     'required' => true,
-    //                     'question' => null,
-    //                     'error_message' => null,
-    //                     'get_value_from' => 'user'
-    //                 ],
-    //             ]
-    //         ],
-    //         3 => [
-    //             'title' => 'Ver atividades físicas do mês',
-    //             'function' => 'showPhysicalActivitiesForThisMonth',
-    //             'return_type' => 'result',
-    //             'return_message' => null,
-    //             'params' => [
-    //                 [
-    //                     'var_name' => 'user',
-    //                     'var_caption' => 'Usuário',
-    //                     'var_type' => 'model',
-    //                     'required' => true,
-    //                     'question' => null,
-    //                     'error_message' => null,
-    //                     'get_value_from' => 'user'
-    //                 ],
-    //             ]
-    //         ]
-    //     ]
-    // ],
     [
         'enabled' => true,
-        'title' => 'Recipientes de Água',
-        'description' => 'Gerencie seus recipientes de água facilitando o registro do consumo diário.',
-        'service' => 'WaterIntakeContainer',
+        'title' => 'Atividades Físicas',
+        'description' => 'Registre suas atividades físicas diárias e acompanhe sua evolução.',
+        'service' => 'PhysicalActivity',
         'options' => [
             1 => [
-                'title' => 'Cadastrar recipiente',
-                'function' => 'create',
-                'return_type' => 'message',
-                'return_message' => 'Recipiente cadastrado com sucesso.',
+                'title' => 'Registrar atividade física',
+                'function' => 'createFromBot',
+                'return_type' => 'result',
+                'return_message' => null,
                 'params' => [
                     [
                         'var_name' => 'user_id',
-                        'var_caption' => 'Usuário',
                         'var_type' => 'int',
+                        'var_caption' => 'Usuário',
                         'required' => true,
                         'question' => null,
                         'error_message' => null,
@@ -553,38 +519,118 @@ $modversion['modules'] = array(
                     ],
                     [
                         'var_name' => 'name',
-                        'var_caption' => 'Nome do recipiente',
                         'var_type' => 'string',
+                        'var_caption' => 'Nome da atividade',
                         'required' => true,
-                        'question' => 'Qual o nome do recipiente?',
-                        'error_message' => 'Nome inválido. Qual o nome do recipiente?',
+                        'question' => 'Qual o nome da atividade?',
+                        'error_message' => 'Nome inválido. Qual o nome da atividade?',
                         'get_value_from' => 'response'
                     ],
                     [
-                        'var_name' => 'size',
-                        'var_caption' => 'Capacidade do recipiente',
-                        'var_type' => 'int',
+                        'var_name' => 'description',
+                        'var_type' => 'string',
+                        'var_caption' => 'Descrição da atividade',
+                        'required' => false,
+                        'question' => 'Descreva a atividade realizada.',
+                        'error_message' => 'Descrição inválida. Descreva a atividade realizada.',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'category_id',
+                        'var_type' => 'physical_activity_category',
+                        'var_caption' => 'Categoria',
                         'required' => true,
-                        'question' => 'Qual capacidade do recipiente? (em ml)',
-                        'error_message' => 'Capacidade inválida. Qual capacidade do recipiente? (em ml)',
+                        'question' => 'function showCategoryOptions()',
+                        'error_message' => 'function showCategoryOptions(true)',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'sport_id',
+                        'var_type' => 'physical_activity_sport',
+                        'var_caption' => 'Atividade',
+                        'required' => true,
+                        'question' => 'function showSportOptions(category_id)',
+                        'error_message' => 'function showSportOptions(category_id,true)',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'date',
+                        'var_type' => 'date',
+                        'var_caption' => 'Data',
+                        'required' => true,
+                        'question' => 'Qual a data da atividade (DD/MM/YYYY)?',
+                        'error_message' => 'Data inválida. Qual a data da atividade (DD/MM/YYYY)?',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'start_time',
+                        'var_type' => 'time',
+                        'var_caption' => 'Hora de início',
+                        'required' => true,
+                        'question' => 'Que horas iniciou a atividade (h:m)?',
+                        'error_message' => 'Hora de início inválida. Que horas iniciou a atividade (h:m)?',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'end_time',
+                        'var_type' => 'time',
+                        'var_caption' => 'Hora de fim',
+                        'required' => true,
+                        'question' => 'Que horas terminou a atividade (h:m)?',
+                        'error_message' => 'Hora de fim inválida. Que horas terminou a atividade (h:m)?',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'effort_level',
+                        'var_type' => 'effort',
+                        'var_caption' => 'Nível de esforço',
+                        'required' => true,
+                        'question' => 'function showEffortLevelsOptions()',
+                        'error_message' => 'function showEffortLevelsOptions(true)',
+                        'get_value_from' => 'response'
+                    ],
+                    [
+                        'var_name' => 'observations',
+                        'var_type' => 'string',
+                        'var_caption' => 'Observações',
+                        'required' => false,
+                        'question' => 'Alguma observação sobre a atividade?',
+                        'error_message' => 'Observação inválida. Alguma observação sobre a atividade?',
                         'get_value_from' => 'response'
                     ],
                 ]
             ],
             2 => [
-                'title' => 'Ver recipientes cadastrados',
-                'function' => 'showWaterIntakeContainers',
+                'title' => 'Resumo semanal de atividades físicas',
+                'function' => 'showWeeklySummary',
                 'return_type' => 'result',
                 'return_message' => null,
                 'params' => [
                     [
-                        'var_name' => 'user',
+                        'var_name' => 'user_id',
+                        'var_type' => 'int',
                         'var_caption' => 'Usuário',
-                        'var_type' => 'model',
                         'required' => true,
                         'question' => null,
                         'error_message' => null,
-                        'get_value_from' => 'user'
+                        'get_value_from' => 'system'
+                    ],
+                ]
+            ],
+            3 => [
+                'title' => 'Resumo mensal de atividades físicas',
+                'function' => 'showMonthlySummary',
+                'return_type' => 'result',
+                'return_message' => null,
+                'params' => [
+                    [
+                        'var_name' => 'user_id',
+                        'var_type' => 'int',
+                        'var_caption' => 'Usuário',
+                        'required' => true,
+                        'question' => null,
+                        'error_message' => null,
+                        'get_value_from' => 'system'
                     ],
                 ]
             ]
@@ -592,7 +638,7 @@ $modversion['modules'] = array(
     ],
     [
         'enabled' => true,
-        'title' => 'Controle de notificações',
+        'title' => 'Configurações',
         'description' => 'Gerencie suas notificações de forma simples e rápida.',
         'service' => 'NotificationSetting',
         'options' => [
