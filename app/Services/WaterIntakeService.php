@@ -87,23 +87,23 @@ class WaterIntakeService
             $total = $waterintakes->sum('amount');
             $list = '';
             foreach ($waterintakes as $waterintake) {
-                $list .= $waterintake->created_at->format('H:i') . ' \- ';
+                $list .= $waterintake->created_at->format('H:i') . ' - ';
                 $list .= $waterintake->amount . 'ml' . "\n";
             }
 
             if (!$user->daily_water_amount) {
-                $message = "Você ainda não definiu sua meta de consumo diário de água\. Para definir sua meta de consumo diário de água acesse o menu Perfil de Usuário\.\n";
+                $message = "Você ainda não definiu sua meta de consumo diário de água. Para definir sua meta de consumo diário de água acesse o menu Perfil de Usuário.\n";
             } else {
                 $message = "Sua meta de consumo diário é de *{$user->daily_water_amount} ml*\n";
             }
 
-            $message .= "Você já consumiu *{$total}ml* de água hoje\.\n";
+            $message .= "Você já consumiu *{$total}ml* de água hoje.\n";
 
             if ($total >= $user->daily_water_amount) {
-                $message .= "Parabéns! Você já atingiu sua meta de consumo diário de água\.\n";
+                $message .= "Parabéns! Você já atingiu sua meta de consumo diário de água.\n";
             } else {
                 $missing = $user->daily_water_amount - $total;
-                $message .= "Faltam *{$missing}ml* para atingir sua meta de consumo diário de água\.\n";
+                $message .= "Faltam *{$missing}ml* para atingir sua meta de consumo diário de água.\n";
             }
             if ($list) {
                 $message .= "\nDetalhes:\n" . $list;

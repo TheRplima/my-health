@@ -557,6 +557,8 @@ class TelegramController extends Controller
                 if (isset($optionData['return_type']) && $optionData['return_type'] == 'message') {
                     $this->bot->sendMessage($chatId, $optionData['return_message']);
                 } elseif (isset($optionData['return_type']) && $optionData['return_type'] == 'result') {
+                    //sanitize result to avoid markdown issues
+                    $result = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
                     $this->bot->sendMessage($chatId, $result, 'MarkdownV2');
                 } else {
                     $this->bot->sendMessage($chatId, "Ação realizada com sucesso.");

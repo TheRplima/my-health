@@ -132,17 +132,17 @@ class WeightControlService
         $object = $this->getWeightControlsByYear($user->id, now()->year);
 
         if ($object) {
-            $message = "Seu peso atual é de *{$user->weight}kg*\.\n\n";
+            $message = "Seu peso atual é de *{$user->weight}kg*.\n\n";
             $message .= "Detalhes:\n";
             $message .= "Peso registrado este ano:\n";
             foreach ($object as $item) {
-                $message .= $item->created_at->format('d/m/Y') . ' \- ';
+                $message .= $item->created_at->format('d/m/Y') . ' - ';
                 $message .= str_replace('.', ',', (string) $item->weight) . "kg\n";
             }
 
             return $message;
         }
 
-        return 'Você não registrou seu peso este mês\.';
+        return 'Você não registrou seu peso este mês.';
     }
 }
