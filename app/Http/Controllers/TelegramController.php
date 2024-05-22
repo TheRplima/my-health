@@ -223,6 +223,13 @@ class TelegramController extends Controller
                 $firstParam = $optionData['params'][$firstParamIndex];
                 if ($firstParam['required']) {
                     if ($firstParam['question']) {
+                        if (strpos($paramData['question'], 'function') !== false) {
+                            $function = $this->extractFunctionQuestion($paramData['question']);
+                            $functionParams = $this->extractFunctionQuestionParams($paramData['question']);
+                            $this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $optionData);
+                            cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$option}_{$firstParamIndex}");
+                            return;
+                        }
                         $this->bot->sendMessage($chatId, $firstParam['question']);
                     } else {
                         $this->bot->sendMessage($chatId, 'Qual o valor de ' . $firstParam['var_caption'] . '?');
@@ -263,6 +270,13 @@ class TelegramController extends Controller
             if (strtolower($text) === 's' || strtolower($text) === 'sim' || strtolower($text) === 'y' || strtolower($text) === 'yes') {
                 // Perguntar pelo valor do parâmetro opcional
                 $paramData = $this->modules[$moduleIndex]['options'][$optionIndex]['params'][$paramIndex];
+                if (strpos($paramData['question'], 'function') !== false) {
+                    $function = $this->extractFunctionQuestion($paramData['question']);
+                    $functionParams = $this->extractFunctionQuestionParams($paramData['question']);
+                    $this->executeOptionQuestion($chatId, $this->modules[$moduleIndex]['service'], $function, $functionParams, $this->modules[$moduleIndex]['options'][$optionIndex]);
+                    cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
+                    return;
+                }
                 $this->bot->sendMessage($chatId, $paramData['question']);
                 cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
             } else {
@@ -284,6 +298,12 @@ class TelegramController extends Controller
         if ($paramData['get_value_from'] === 'response') {
             $value = $this->validateParam($paramData, $text, $photo);
             if ($value === false) {
+                if (strpos($paramData['error_message'], 'function') !== false) {
+                    $function = $this->extractFunctionQuestion($paramData['error_message']);
+                    $functionParams = $this->extractFunctionQuestionParams($paramData['error_message']);
+                    $this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $option);
+                    return;
+                }
                 $this->bot->sendMessage($chatId, $paramData['error_message']);
                 return;
             }
@@ -311,6 +331,14 @@ class TelegramController extends Controller
         if (isset($option['params'][$paramIndex])) {
             $nextParam = $option['params'][$paramIndex];
             if ($nextParam['required']) {
+                //check if the question have key word function
+                if (strpos($nextParam['question'], 'function') !== false) {
+                    $function = $this->extractFunctionQuestion($nextParam['question']);
+                    $functionParams = $this->extractFunctionQuestionParams($nextParam['question']);
+                    $this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $option);
+                    cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
+                    return;
+                }
                 $this->bot->sendMessage($chatId, $nextParam['question']);
                 cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
             } else {
@@ -323,6 +351,28 @@ class TelegramController extends Controller
             cache()->forget("chat_{$chatId}_state");
             $this->sendModuleMenu($chatId, $moduleIndex, false);
         }
+    }
+
+    protected function extractFunctionQuestion($text)
+    {
+        $function = explode('function', $text);
+        $function = explode('(', $function[1]);
+        $function = $function[0];
+        $function = trim($function);
+        $function = explode(' ', $function);
+
+        return $function[0];
+    }
+
+    protected function extractFunctionQuestionParams($text)
+    {
+        $functionParams = explode('(', $text);
+        $functionParams = explode(')', $functionParams[1]);
+        $functionParams = $functionParams[0];
+        $functionParams = explode(',', $functionParams);
+        $functionParams = array_map('trim', $functionParams);
+
+        return $functionParams;
     }
 
     protected function handleRegistration($chatId, $text, $photo = null)
@@ -514,6 +564,9 @@ class TelegramController extends Controller
         } elseif ($param['var_type'] === 'date') {
             $date = \DateTime::createFromFormat('d/m/Y', $text);
             return $date && $date->format('d/m/Y') === $text ? $text : false;
+        } elseif ($param['var_type'] === 'time') {
+            $time = \DateTime::createFromFormat('H:i', $text);
+            return $time && $time->format('H:i') === $text ? $text : false;
         } elseif ($param['var_type'] === 'email') {
             $isValid = filter_var($text, FILTER_VALIDATE_EMAIL);
             $isUnique = User::where('email', $text)->count() === 0;
@@ -534,6 +587,36 @@ class TelegramController extends Controller
             $photo = $this->getUserSentPhotos($photo);
             $photo = $this->savePhoto($photo);
             return $photo ? $photo : false;
+        } elseif ($param['var_type'] === 'model') {
+            $modelClass = '\\App\\Models\\' . ucfirst($param['get_value_from']);
+            $model = new $modelClass();
+            $model = $model->find($text);
+            return $model ? $model : false;
+        } elseif ($param['var_type'] === 'physical_activity_category') {
+            $serviceClass = '\\App\\Services\\PhysicalActivityService';
+            $repository = '\\App\\Repositories\\PhysicalActivityRepository';
+            $serviceInstance = new $serviceClass(new $repository);
+            $categories = $serviceInstance->getCategoryOptions();
+            $categoryIds = array_map(function ($category) {
+                return $category['id'];
+            }, $categories->toArray(request()));
+            return in_array((int)$text, $categoryIds) ? (int)$text : false;
+        } elseif ($param['var_type'] === 'physical_activity_sport') {
+            $serviceClass = '\\App\\Services\\PhysicalActivityService';
+            $repository = '\\App\\Repositories\\PhysicalActivityRepository';
+            $serviceInstance = new $serviceClass(new $repository);
+            $category_id = cache()->get("chat_{$this->user->telegram_user_id}_params")['category_id'];
+            $sports = $serviceInstance->getSportOptions($category_id);
+            $sportIds = array_map(function ($sport) {
+                return $sport['id'];
+            }, $sports->toArray(request()));
+            return in_array((int)$text, $sportIds) ? (int)$text : false;
+        } elseif ($param['var_type'] === 'effort') {
+            $serviceClass = '\\App\\Services\\PhysicalActivityService';
+            $repository = '\\App\\Repositories\\PhysicalActivityRepository';
+            $serviceInstance = new $serviceClass(new $repository);
+            $effortLevelsDb = $serviceInstance->getEffortLevels(true);
+            return in_array((int)$text, array_keys($effortLevelsDb)) ? $effortLevelsDb[(int)$text] : false;
         }
 
         return false;
@@ -557,9 +640,16 @@ class TelegramController extends Controller
                 if (isset($optionData['return_type']) && $optionData['return_type'] == 'message') {
                     $this->bot->sendMessage($chatId, $optionData['return_message']);
                 } elseif (isset($optionData['return_type']) && $optionData['return_type'] == 'result') {
-                    //sanitize result to avoid markdown issues
-                    $result = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
-                    $this->bot->sendMessage($chatId, $result, 'MarkdownV2');
+                    if (is_array($result)) {
+                        foreach ($result as $res) {
+                            $res = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
+                            sleep(1);
+                            $this->bot->sendMessage($chatId, $res, 'MarkdownV2');
+                        }
+                    } else {
+                        $result = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
+                        $this->bot->sendMessage($chatId, $result, 'MarkdownV2');
+                    }
                 } else {
                     $this->bot->sendMessage($chatId, "Ação realizada com sucesso.");
                 }
@@ -571,6 +661,34 @@ class TelegramController extends Controller
         }
     }
 
+    protected function executeOptionQuestion($chatId, $service, $function, $params, $optionData)
+    {
+        $serviceClass = '\\App\\Services\\' . $service . 'Service';
+        $repository = '\\App\\Repositories\\' . $service . 'Repository';
+        $storedParams = cache()->get("chat_{$chatId}_params", []);
+
+        try {
+            $serviceInstance = new $serviceClass(new $repository);
+            foreach ($params as $key => $param) {
+                if (isset($storedParams[$param])) {
+                    $params[$key] = $storedParams[$param];
+                }
+            }
+            if (count($params) === 1) {
+                $params = !empty(array_values($params)[0]) ? array_values($params)[0] : null;
+            }
+            $result = $serviceInstance->$function($params);
+
+            if ($result) {
+                $result = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
+                $this->bot->sendMessage($chatId, $result, 'MarkdownV2');
+            } else {
+                $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação.");
+            }
+        } catch (\Exception $e) {
+            $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação. Erro: " . $e->getMessage());
+        }
+    }
 
     protected function exitMenu($chatId)
     {
