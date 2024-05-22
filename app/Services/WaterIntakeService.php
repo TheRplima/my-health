@@ -114,4 +114,39 @@ class WaterIntakeService
 
         return 'Você ainda não consumiu água hoje.';
     }
+
+    public function createWaterIntakeContainer(array $data)
+    {
+        try {
+            $waterIntakeContainer = $this->waterIntakeRepository->createWaterIntakeContainer($data);
+            return $waterIntakeContainer;
+        } catch (\Exception $e) {
+            throw new FailedAction('Falha ao criar recipiente de água. Erro: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function getWaterIntakeContainersByUser(int $userId)
+    {
+        // Get all water intake containers by user
+        return $this->waterIntakeRepository->findWaterIntakeContainersByUser($userId);
+    }
+
+    public function showWaterIntakeContainers(User $user)
+    {
+        $object = $this->getWaterIntakeContainersByUser($user->id);
+
+        if ($object) {
+            $list = '';
+            foreach ($object as $item) {
+                $list .= $item->name . ' - ';
+                $list .= $item->size . 'ml' . "\n";
+            }
+
+            $message = 'Detalhes:' . "\n" . $list;
+
+            return $message;
+        }
+
+        return 'Você ainda não possui recipientes de água cadastrados.';
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\WaterIntake;
+use App\Models\WaterIntakeContainer;
 
 class WaterIntakeRepository
 {
@@ -82,5 +83,31 @@ class WaterIntakeRepository
         return WaterIntake::where('user_id', $userId)
             ->where('water_intake_container_id', $containerId)
             ->get();
+    }
+
+    public function createWaterIntakeContainer(array $data)
+    {
+        return WaterIntakeContainer::create($data);
+    }
+
+    public function findWaterIntakeContainer(int $id): ?WaterIntakeContainer
+    {
+        return WaterIntakeContainer::find($id);
+    }
+
+    public function updateWaterIntakeContainer(int $id, array $data): bool
+    {
+        $waterIntakeContainer = $this->findWaterIntakeContainer($id);
+
+        if ($waterIntakeContainer) {
+            return $waterIntakeContainer->update($data);
+        }
+
+        return false;
+    }
+
+    public function findWaterIntakeContainersByUser(int $userId)
+    {
+        return WaterIntakeContainer::where('user_id', $userId)->get();
     }
 }
