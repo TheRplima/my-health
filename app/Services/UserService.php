@@ -95,7 +95,6 @@ class UserService
                 $level = $activity_levels[$user->activity_level];
                 $text .= "*Nível de atividade física:* {$level}\n";
             }
-            $text = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $text);
 
             return $text;
         } catch (\Exception $e) {
