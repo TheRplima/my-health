@@ -421,10 +421,31 @@ class TelegramController extends Controller
             }
 
             $registrationData['password'] = Hash::make($text);
-            $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
-            cache()->put("chat_{$chatId}_state", 'register_notifications');
-            cache()->put("chat_{$chatId}_registration_data", $registrationData);
+
+            $registrationData['telegram_user_id'] = $chatId;
+            $registrationData['telegram_user_deeplink'] = Uuid::uuid4();
+            $this->user = User::create($registrationData);
+
+            if ($this->user) {
+                cache()->put("user_{$chatId}", $this->user);
+                $name = ucfirst(explode(' ', $registrationData['name'])[0]);
+                $this->bot->sendMessage($chatId, "{$name}, seu cadastro foi concluído com sucesso! A partir de agora você já pode usufruir de todos os recursos do sistema.");
+                $this->sendMainMenu($chatId);
+                cache()->put("chat_{$chatId}_state", 'main_menu');
+                cache()->forget("chat_{$chatId}_registration_data");
+                return;
+            }
+
+            $this->bot->sendMessage($chatId, "Tivemos algum problem ao salvar seu cadastro. Por favor, tente novamente.");
+            $this->sendMainMenu($chatId);
+            cache()->put("chat_{$chatId}_state", 'main_menu');
+            cache()->forget("chat_{$chatId}_registration_data");
             return;
+
+            // $this->bot->sendMessage($chatId, "Deseja receber notificações via Telegram? (S/N)");
+            // cache()->put("chat_{$chatId}_state", 'register_notifications');
+            // cache()->put("chat_{$chatId}_registration_data", $registrationData);
+            // return;
         }
 
         if ($state === 'register_notifications') {
@@ -437,15 +458,11 @@ class TelegramController extends Controller
             $registrationData['notifications'] = strtoupper($text) === 'S';
 
             if ($registrationData['notifications']) {
-                $registrationData['telegram_user_id'] = $chatId;
-                $registrationData['telegram_user_deeplink'] = Uuid::uuid4();
-            }
-            $this->user = User::create($registrationData);
-            cache()->put("user_{$chatId}", $this->user);
-            if ($registrationData['notifications']) {
                 $subscribeManagement = new NotificationSubscriptionManager();
-                $subscribeManagement->subscribe($this->user, 'App\\Notifications\\WaterIntakeReminderDatabase');
-                $subscribeManagement->subscribe($this->user, 'App\\Notifications\\WaterIntakeReminderTelegram');
+                $subscribableNotifications = $subscribeManagement->subscribableNotifications();
+                foreach ($subscribableNotifications as $subscribableNotification) {
+                    $subscribeManagement->subscribe($this->user, $subscribableNotification);
+                }
                 $notificationSettingService = new NotificationSettingService(new NotificationSettingRepository());
                 $payload = config('water-intake-reminder.default_notification_setting');
                 $payload['user_id'] = $this->user->id;
@@ -454,11 +471,6 @@ class TelegramController extends Controller
                 $payload['type'] = 'water-intake-reminder-database';
                 $notificationSettingService->create($payload);
             }
-            $name = ucfirst(explode(' ', $registrationData['name'])[0]);
-            $this->bot->sendMessage($chatId, "Cadastro concluído com sucesso! Bem-vindo(a), " . $name . "!");
-            $this->sendMainMenu($chatId);
-            cache()->put("chat_{$chatId}_state", 'main_menu');
-            cache()->forget("chat_{$chatId}_registration_data");
         }
     }
 
