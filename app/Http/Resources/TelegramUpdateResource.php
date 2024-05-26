@@ -23,6 +23,7 @@ class TelegramUpdateResource extends JsonResource
             'type' => $type,
             'chat_id' => $type === 'callback_query' ? $this['callback_query']['message']['chat']['id'] : $this['message']['chat']['id'],
             'command' => $this->extractCommand($command, $type),
+            'data' => $this['callback_query']['data'] ?? '',
         ];
     }
 

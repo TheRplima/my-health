@@ -340,10 +340,10 @@ $modversion['modules'] = array(
                     [
                         'var_name' => 'amount',
                         'var_caption' => 'Quantidade de água',
-                        'var_type' => 'int',
+                        'var_type' => 'waterintake_amount',
                         'required' => true,
-                        'question' => 'Qual a quantidade de água ingerida (em ml)?',
-                        'error_message' => 'Quantidade inválida. Qual a quantidade de água ingerida (em ml)?',
+                        'question' => 'function showAmountOptions(user_id)',
+                        'error_message' => 'function showAmountOptions(user_id,true)',
                         'get_value_from' => 'response'
                     ],
                 ]
@@ -705,5 +705,10 @@ $modversion['modules'] = array(
         ]
     ]
 );
+
+$modversion['commands'] = [
+    'menu',
+    'WaterIntake_create_amount'
+];
 
 return $modversion;

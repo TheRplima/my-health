@@ -10,9 +10,11 @@ use App\Services\NotificationSettingService;
 use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Uuid;
 use TelegramBot\Api\Client;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 
 class TelegramController extends Controller
 {
@@ -22,6 +24,7 @@ class TelegramController extends Controller
     protected $modName;
     protected $modDescription;
     protected $modAuthor;
+    protected $commands;
 
     public function __construct()
     {
@@ -29,6 +32,7 @@ class TelegramController extends Controller
         $this->modules = config('my-health-telegram-bot.modules');
         $this->modName = config('my-health-telegram-bot.name');
         $this->modDescription = config('my-health-telegram-bot.description');
+        $this->commands = config('my-health-telegram-bot.commands');
     }
 
     public function handleUpdates()
@@ -45,16 +49,24 @@ class TelegramController extends Controller
             $updateObj = new TelegramUpdateResource(json_decode($update->toJson(), true));
             $storageUpdates->push($updateObj);
             $storageUpdateIds[] = $updateId;
-
             if (!$update->getMessage()) {
-                cache()->put('last_update_id', $updateId);
-                continue;
+                $resource = new TelegramUpdateResource(json_decode($update->toJson(), true));
+                $resource = $resource->toArray(request());
+                $chatId = $resource['chat_id'];
+                $text = $resource['data'];
+                $command = explode(':', $text)[0];
+                if (!in_array($command, $this->commands)) {
+                    cache()->put('last_update_id', $updateId);
+                    continue;
+                }
+                cache()->put("chat_{$chatId}_state", 'execute_command');
+            } else {
+                $message = $update->getMessage();
+                $chatId = $message->getChat()->getId();
+                $text = $message->getText();
+                $photo = $message->getPhoto();
             }
 
-            $message = $update->getMessage();
-            $chatId = $message->getChat()->getId();
-            $text = $message->getText();
-            $photo = $message->getPhoto();
             $this->user = cache()->get("user_{$chatId}", null);
 
             if (!$this->user) {
@@ -92,6 +104,8 @@ class TelegramController extends Controller
                 $this->handleParameterInput($chatId, $text, $photo);
             } elseif (strpos($state, 'register_') === 0) {
                 $this->handleRegistration($chatId, $text, $photo);
+            } elseif ($state === 'execute_command') {
+                $this->executeCommand($resource);
             } else {
                 $this->bot->sendMessage($chatId, "Comando não reconhecido. Por favor, envie /menu para ver as opções.");
             }
@@ -226,7 +240,9 @@ class TelegramController extends Controller
                         if (strpos($paramData['question'], 'function') !== false) {
                             $function = $this->extractFunctionQuestion($paramData['question']);
                             $functionParams = $this->extractFunctionQuestionParams($paramData['question']);
-                            $this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $optionData);
+                            if ($this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $optionData) == false) {
+                                return;
+                            }
                             cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$option}_{$firstParamIndex}");
                             return;
                         }
@@ -273,7 +289,9 @@ class TelegramController extends Controller
                 if (strpos($paramData['question'], 'function') !== false) {
                     $function = $this->extractFunctionQuestion($paramData['question']);
                     $functionParams = $this->extractFunctionQuestionParams($paramData['question']);
-                    $this->executeOptionQuestion($chatId, $this->modules[$moduleIndex]['service'], $function, $functionParams, $this->modules[$moduleIndex]['options'][$optionIndex]);
+                    if ($this->executeOptionQuestion($chatId, $this->modules[$moduleIndex]['service'], $function, $functionParams, $this->modules[$moduleIndex]['options'][$optionIndex]) == false) {
+                        return;
+                    }
                     cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
                     return;
                 }
@@ -335,7 +353,10 @@ class TelegramController extends Controller
                 if (strpos($nextParam['question'], 'function') !== false) {
                     $function = $this->extractFunctionQuestion($nextParam['question']);
                     $functionParams = $this->extractFunctionQuestionParams($nextParam['question']);
-                    $this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $option);
+                    if ($this->executeOptionQuestion($chatId, $module['service'], $function, $functionParams, $option) == false) {
+                        return;
+                    }
+                    //tag with prefix handling_option_chatId to indicate that the next state is handling_option
                     cache()->put("chat_{$chatId}_state", "handling_option_{$moduleIndex}_{$optionIndex}_{$paramIndex}");
                     return;
                 }
@@ -669,6 +690,7 @@ class TelegramController extends Controller
                 $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação.");
             }
         } catch (\Exception $e) {
+            Log::error($e);
             $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação. Erro: " . $e->getMessage());
         }
     }
@@ -692,12 +714,31 @@ class TelegramController extends Controller
             $result = $serviceInstance->$function($params);
 
             if ($result) {
-                $result = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
-                $this->bot->sendMessage($chatId, $result, 'MarkdownV2');
+                //check if result is a array, if true, get result message as message text and result options to create replay markup
+                if (is_array($result)) {
+                    if (isset($result['error'])) {
+                        $this->bot->sendMessage($chatId, $result['error']);
+                        sleep(1);
+                        $this->sendModuleMenu($chatId, cache()->get("chat_{$chatId}_selected_module"), false);
+                        cache()->put("chat_{$chatId}_state", 'module_menu');
+                        return false;
+                    } else {
+                        $message = array_shift($result);
+                        $options = $result;
+                        $keyboard = new InlineKeyboardMarkup($options['inline_keyboard'], true, true, false);
+                        $message = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $message);
+                        $this->bot->sendMessage($chatId, $message, 'MarkdownV2', false, null, $keyboard);
+                    }
+                } else {
+                    $result = preg_replace('/([._`[\]()~>#+\-=|{}!])/m', '\\\\$1', $result);
+                    $this->bot->sendMessage($chatId, $result, 'MarkdownV2');
+                }
             } else {
                 $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação.");
             }
+            return true;
         } catch (\Exception $e) {
+            Log::error($e);
             $this->bot->sendMessage($chatId, "Houve um problema ao realizar a ação. Erro: " . $e->getMessage());
         }
     }
@@ -708,6 +749,50 @@ class TelegramController extends Controller
         cache()->forget("chat_{$chatId}_state");
         cache()->forget("user_{$chatId}");
 
+        return;
+    }
+
+    protected function executeCommand($resource)
+    {
+        $updateId = $resource['update_id'];
+        $chatId = $resource['chat_id'];
+        $serviceName = $resource['command']['service'];
+        $function = $resource['command']['function'];
+        $field = $resource['command']['field'];
+        $value = $resource['command']['value'];
+
+        $module = cache()->get("chat_{$chatId}_selected_module");
+
+        if ($value === 'cancel') {
+            $this->bot->sendMessage($chatId, "Operação cancelada.");
+            cache()->forget("chat_{$chatId}_state");
+            sleep(1);
+            $this->sendModuleMenu($chatId, $module, false);
+            return;
+        }
+
+        $service = '\\App\\Services\\' . ucfirst($serviceName) . 'Service';
+        $repository = '\\App\\Repositories\\' . ucfirst($serviceName) . 'Repository';
+
+        $payload = [
+            'user_id' => $this->user->id,
+            $field => $value
+        ];
+
+        $serviceInstance = new $service(new $repository);
+        $object = $serviceInstance->$function($payload);
+
+        if ($object) {
+            //return back a message to user telegram chat saying that the operation was successful
+            $this->bot->sendMessage($chatId, "Operação realizada com sucesso.");
+
+            Log::info('User with ID: ' . $this->user->id . ' has updated ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+        } else {
+            Log::error('User with ID: ' . $this->user->id . ' has tried to update ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
+        }
+        cache()->forget("chat_{$chatId}_state");
+        sleep(1);
+        $this->sendModuleMenu($chatId, $module, false);
         return;
     }
 }

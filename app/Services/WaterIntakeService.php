@@ -149,4 +149,46 @@ class WaterIntakeService
 
         return 'Você ainda não possui recipientes de água cadastrados.';
     }
+
+    public function showAmountOptions($user_id)
+    {
+        $user = User::find($user_id);
+        $object = $this->getWaterIntakeContainersByUser($user->id);
+
+        if ($object && count($object->toArray(request())) > 0) {
+            $return = [];
+            $options = [];
+            $i = 0;
+            foreach ($object as $item) {
+                $options[] = [
+                    'text' => $item->name,
+                    'callback_data' => 'WaterIntake_create_amount:' . $item->size
+                ];
+                $i++;
+                if ($i == 3) {
+                    $return[] = $options;
+                    $options = [];
+                    $i = 0;
+                }
+            }
+            if ($i > 0) {
+                $return[] = $options;
+            }
+            $return[] = [
+                [
+                    'text' => 'Cancelar',
+                    'callback_data' => 'WaterIntake_create_amount:cancel'
+                ]
+            ];
+
+            return [
+                'text' => 'Selecione a quantidade de água consumida:',
+                'inline_keyboard' => $return
+            ];
+        }
+
+        return [
+            'error' => 'Você ainda não possui recipientes de água cadastrados.'
+        ];
+    }
 }
