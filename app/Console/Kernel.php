@@ -3,13 +3,10 @@
 namespace App\Console;
 
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Jobs\ManageNotificationsDispatcher;
 use Illuminate\Console\Scheduling\Schedule;
-use App\Jobs\TelegramBotCallback;
 use App\Jobs\WaterIntakeReminder;
-use App\Jobs\GetTelegramUpdates;
-use App\Jobs\ChatBot;
 use App\Jobs\ReActiveSnoozedNotifications;
+use App\Jobs\WeightControlReminder;
 
 class Kernel extends ConsoleKernel
 {
@@ -18,10 +15,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('telegram:poll-updates')->withoutOverlapping()->everySecond();
-        $schedule->job(new TelegramBotCallback())->everyTwoSeconds()->withoutOverlapping()->name('telegram-bot-callback');
-        $schedule->job(new WaterIntakeReminder())->everyMinute()->withoutOverlapping()->name('water-intake-reminder');
+        // $schedule->command('telegram:poll-updates')->withoutOverlapping()->everySecond();
         $schedule->job(new ReActiveSnoozedNotifications())->everyMinute()->name('re-active-snoozed-notifications');
+        $schedule->job(new WaterIntakeReminder())->everyMinute()->withoutOverlapping()->name('water-intake-reminder');
+        $schedule->job(new WeightControlReminder())->everyMinute()->withoutOverlapping()->name('weight-control-reminder');
     }
 
     /**
