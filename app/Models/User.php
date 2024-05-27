@@ -147,6 +147,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->notificationSubscriptions()->where('type', $type)->exists();
     }
 
+    public function getNotificationSubscriptions($types)
+    {
+        return $this->notificationSubscriptions()->whereIn('type', $types)->get();
+    }
+
     public function addNotificationSubscription($type)
     {
         $this->notificationSubscriptions()->create([
