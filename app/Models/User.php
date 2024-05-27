@@ -163,4 +163,49 @@ class User extends Authenticatable implements JWTSubject
     {
         $this->notificationSubscriptions()->where('type', $type)->delete();
     }
+
+    public function calculateIdealWeight()
+    {
+        $height = $this->height;
+        $dob = $this->dob;
+        $gender = $this->gender;
+
+        if ($height === null || $dob === null || $gender === null) {
+            return null;
+        }
+
+        $age = now()->diffInYears($dob);
+
+        // Height should be in cm
+        $heightInInches = $height / 2.54;
+        $baseHeightInInches = 60; // 5 feet
+
+        if ($gender === 'm') {
+            $baseWeight = 50.0; // Devine formula for men
+            $weightPerInch = 2.3;
+        } else {
+            $baseWeight = 45.5; // Devine formula for women
+            $weightPerInch = 2.3;
+        }
+
+        $extraInches = max(0, $heightInInches - $baseHeightInInches);
+        $idealWeight = $baseWeight + ($weightPerInch * $extraInches);
+
+        // Adjust ideal weight based on age
+        if ($age > 50) {
+            $idealWeight += 0.1 * $idealWeight; // Add 10% for older adults
+        } elseif ($age < 20) {
+            $idealWeight -= 0.1 * $idealWeight; // Subtract 10% for teenagers
+        }
+
+        // Ideal weight range with a tolerance of +/- 10%
+        $minWeight = $idealWeight * 0.9;
+        $maxWeight = $idealWeight * 1.1;
+
+        return [
+            'ideal' => round($idealWeight, 2),
+            'min' => round($minWeight, 2),
+            'max' => round($maxWeight, 2)
+        ];
+    }
 }
