@@ -22,4 +22,9 @@ return [
         'telegram' => 'Lembrete Ingestão de Água via Telegram',
     ],
 
+    'notification_types' => [
+        'water-intake-reminder-mail',
+        'water-intake-reminder-database',
+        'water-intake-reminder-telegram',
+    ],
 ];

@@ -31,6 +31,7 @@ class WaterIntakeReminder implements ShouldQueue
     {
         $enabled = config('water-intake-reminder.enabled');
         $defaultNotificationSetting = (object)config('water-intake-reminder.default_notification_setting');
+        $notificationTypes = config('water-intake-reminder.notification_types');
 
         if (!$enabled) {
             return;
@@ -38,8 +39,9 @@ class WaterIntakeReminder implements ShouldQueue
 
         $users = User::all();
         foreach ($users as $user) {
+            $userNotificationSubscriptions = $user->getNotificationSubscriptions($notificationTypes);
             $subscribeManagement = new NotificationSubscriptionManager();
-            foreach ($user->notificationSubscriptions as $notificationSubscription) {
+            foreach ($userNotificationSubscriptions as $notificationSubscription) {
                 $type = $notificationSubscription->type;
                 $channel = $subscribeManagement->subscribableNotificationClassFromType($type);
                 $notificationSetting = $user->getNotificationSetting($type);
