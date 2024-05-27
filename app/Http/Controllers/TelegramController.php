@@ -211,6 +211,8 @@ class TelegramController extends Controller
         if ($text === '0') {
             $this->sendMainMenu($chatId);
             cache()->put("chat_{$chatId}_state", 'main_menu');
+            cache()->forget("chat_{$chatId}_selected_module");
+
             return;
         }
 
@@ -748,6 +750,9 @@ class TelegramController extends Controller
         $this->bot->sendMessage($chatId, "Você saiu do menu! Até a próxima.\n\nSempre que quiser ativar o menu novamente, basta enviar /menu que ele será ativado.");
         cache()->forget("chat_{$chatId}_state");
         cache()->forget("user_{$chatId}");
+        cache()->forget("chat_{$chatId}_registration_data");
+        cache()->forget("chat_{$chatId}_params");
+        cache()->forget("chat_{$chatId}_selected_module");
 
         return;
     }
@@ -766,6 +771,9 @@ class TelegramController extends Controller
         if ($value === 'cancel') {
             $this->bot->sendMessage($chatId, "Operação cancelada.");
             cache()->forget("chat_{$chatId}_state");
+            if (!$module) {
+                return;
+            }
             sleep(1);
             $this->sendModuleMenu($chatId, $module, false);
             return;
@@ -791,6 +799,9 @@ class TelegramController extends Controller
             Log::error('User with ID: ' . $this->user->id . ' has tried to update ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
         }
         cache()->forget("chat_{$chatId}_state");
+        if (!$module) {
+            return;
+        }
         sleep(1);
         $this->sendModuleMenu($chatId, $module, false);
         return;
