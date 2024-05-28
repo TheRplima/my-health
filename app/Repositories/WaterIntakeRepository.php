@@ -49,6 +49,13 @@ class WaterIntakeRepository
             ->get();
     }
 
+    public function getTotalWaterIntakeByDay(int $userId, string $date)
+    {
+        return WaterIntake::where('user_id', $userId)
+            ->whereDate('created_at', $date)
+            ->sum('amount');
+    }
+
     public function getWaterIntakesByMonth(int $userId, string $date)
     {
         return WaterIntake::where('user_id', $userId)

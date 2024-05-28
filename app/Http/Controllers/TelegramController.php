@@ -800,7 +800,16 @@ class TelegramController extends Controller
 
         if ($object) {
             //return back a message to user telegram chat saying that the operation was successful
-            $this->bot->sendMessage($chatId, "Operação realizada com sucesso.");
+            if (isset($object['error'])) {
+                $this->bot->sendMessage($chatId, $object['error']);
+                cache()->put("chat_{$chatId}_state", 'module_menu');
+                return;
+            }
+            if (isset($object['success'])) {
+                $this->bot->sendMessage($chatId, $object['success']);
+            } else {
+                $this->bot->sendMessage($chatId, "Operação realizada com sucesso.");
+            }
 
             Log::info('User with ID: ' . $this->user->id . ' has updated ' . $serviceName . ' with ' . $field . ' = ' . $value . ' received from Telegram Bot Callback update id: ' . $updateId);
         } else {

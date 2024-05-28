@@ -29,7 +29,23 @@ class WaterIntakeService
                 $sendCallbackQueryHomeAssistant(['amount' => $data['amount']]);
             }
 
-            return new WaterIntakeResource($waterIntake);
+            if ($waterIntake) {
+                $user = User::find($data['user_id']);
+                $total = $this->waterIntakeRepository->getTotalWaterIntakeByDay($data['user_id'], now()->toDateString());
+                if ($user->daily_water_amount) {
+                    $msg = $total >= $user->daily_water_amount ? 'Parabéns! Você já atingiu sua meta de consumo diário de água.' : 'Faltam ' . ($user->daily_water_amount - $total) . 'ml para atingir sua meta de consumo diário de água.';
+                } else {
+                    $msg = 'Você ainda não definiu sua meta de consumo diário de água. Para definir sua meta de consumo diário de água acesse o menu Perfil de Usuário.';
+                }
+                return [
+                    'success' => 'Consumo de água registrado com sucesso. Você já consumiu ' . $total . 'ml de água hoje. ' . $msg,
+                    'data' => $waterIntake
+                ];
+            } else {
+                return [
+                    'error' => 'Erro ao registrar o consumo de água.'
+                ];
+            }
         } catch (\Exception $e) {
             throw new FailedAction('Falha ao registrar o consumo de água. Erro: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
