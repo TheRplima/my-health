@@ -69,7 +69,7 @@ class WaterIntakeReminderTelegram extends Notification implements SubscribableNo
         if (count($waterIntakeContainers) > 0) {
             $body .= "\n\nEscolha uma das opções abaixo para registrar a ingestão de água:";
             foreach ($waterIntakeContainers as $container) {
-                $buttons[] = ['Bebi ' . $container->name, 'WaterIntake_create_amount:' . $container->size];
+                $buttons[] = ['Bebi ' . $container->name, 'Reminder_WaterIntake_create|amount:' . $container->size];
             }
         } else {
             $body .= "\n\nNão há recipientes cadastrados para registrar a ingestão de água. Cadastre um recipiente através do menu enviando /menu e escolhendo a opção *Recipientes*.";

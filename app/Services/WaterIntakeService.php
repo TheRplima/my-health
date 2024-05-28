@@ -162,7 +162,7 @@ class WaterIntakeService
             foreach ($object as $item) {
                 $options[] = [
                     'text' => $item->name,
-                    'callback_data' => 'WaterIntake_create_amount:' . $item->size
+                    'callback_data' => 'Bot_WaterIntake_create|amount:' . $item->size
                 ];
                 $i++;
                 if ($i == 3) {
@@ -177,7 +177,7 @@ class WaterIntakeService
             $return[] = [
                 [
                     'text' => 'Cancelar',
-                    'callback_data' => 'WaterIntake_create_amount:cancel'
+                    'callback_data' => 'Bot_WaterIntake_create|cancel'
                 ]
             ];
 

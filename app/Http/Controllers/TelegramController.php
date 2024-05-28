@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use App\Repositories\NotificationSettingRepository;
 use App\Http\Resources\TelegramUpdateCollection;
 use App\Http\Resources\TelegramUpdateResource;
-use App\Models\User;
-use App\Repositories\NotificationSettingRepository;
 use App\Services\NotificationSettingService;
-use Asantibanez\LaravelSubscribableNotifications\NotificationSubscriptionManager;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Ramsey\Uuid\Uuid;
 use TelegramBot\Api\Client;
-use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use Ramsey\Uuid\Uuid;
+use App\Models\User;
+use Carbon\Carbon;
 
 class TelegramController extends Controller
 {
@@ -54,7 +54,7 @@ class TelegramController extends Controller
                 $resource = $resource->toArray(request());
                 $chatId = $resource['chat_id'];
                 $text = $resource['data'];
-                $command = explode(':', $text)[0];
+                $command = explode('|', $text)[0];
                 if (!in_array($command, $this->commands)) {
                     cache()->put('last_update_id', $updateId);
                     continue;
@@ -768,7 +768,7 @@ class TelegramController extends Controller
 
         $module = cache()->get("chat_{$chatId}_selected_module");
 
-        if ($value === 'cancel') {
+        if ($field === 'cancel') {
             $this->bot->sendMessage($chatId, "Operação cancelada.");
             cache()->forget("chat_{$chatId}_state");
             if (!$module) {
@@ -782,11 +782,19 @@ class TelegramController extends Controller
         $service = '\\App\\Services\\' . ucfirst($serviceName) . 'Service';
         $repository = '\\App\\Repositories\\' . ucfirst($serviceName) . 'Repository';
 
-        $payload = [
-            'user_id' => $this->user->id,
-            $field => $value
-        ];
-
+        if (is_array($field)) {
+            $payload = [
+                'user_id' => $this->user->id
+            ];
+            foreach ($field as $key => $value) {
+                $payload[$key] = $value;
+            }
+        } else {
+            $payload = [
+                'user_id' => $this->user->id,
+                $field => $value
+            ];
+        }
         $serviceInstance = new $service(new $repository);
         $object = $serviceInstance->$function($payload);
 

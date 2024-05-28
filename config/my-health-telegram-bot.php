@@ -708,7 +708,8 @@ $modversion['modules'] = array(
 
 $modversion['commands'] = [
     'menu',
-    'WaterIntake_create_amount'
+    'Bot_WaterIntake_create',
+    'Reminder_WaterIntake_create'
 ];
 
 return $modversion;
