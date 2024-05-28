@@ -34,4 +34,7 @@ return [
         'token' => env('TELEGRAM_BOT_TOKEN', null),
         'bot_name' => env('TELEGRAM_BOT_NAME', null)
     ],
+    'scheduler-routines' => [
+        'enabled' => env('SCHEDULER_ROUTINES_ENABLED', false)
+    ]
 ];
