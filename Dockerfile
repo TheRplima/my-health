@@ -40,8 +40,8 @@ RUN apt install -y nodejs
 RUN apt install -y nginx
 RUN echo "\
     server {\n\
-        listen 80;\n\
-        listen [::]:80;\n\
+        listen 8000;\n\
+        listen [::]:8000;\n\
         root /var/www/html/public;\n\
         add_header X-Frame-Options \"SAMEORIGIN\";\n\
         add_header X-Content-Type-Options \"nosniff\";\n\
@@ -80,7 +80,7 @@ RUN chown -R www-data:www-data /var/www/html
 
 RUN composer install
 
-EXPOSE 80
+EXPOSE 8000
 
 # Install cron
 RUN apt install -y cron
