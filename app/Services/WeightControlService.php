@@ -108,6 +108,32 @@ class WeightControlService
         return $this->weightControlRepository->getWeightControlsByDateRange($userId, $startDate, $endDate,  $max);
     }
 
+    public function getThisYearBodyWeightVariationChartData(int $userId)
+    {
+        $start = now()->startOfYear();
+        $end = now()->endOfYear();
+        $weightControls = $this->getWeightControlsByDateRange($userId, $start->toDateString(), $end->toDateString());
+
+        for ($i = $start; $i <= $end; $i->addDay()) {
+            $data[] = [
+                'date' => $i,
+                'weight' => 0,
+            ];
+        }
+
+        $data = [];
+        foreach ($weightControls as $weightControl) {
+            $data[] = [
+                $weightControl->created_at->format('d/m'),
+                $weightControl->weight,
+            ];
+        }
+
+        $data = array_merge([['Data', 'Peso']], $data);
+
+        return $data;
+    }
+
     public function showWeightForThisMonth(User $user)
     {
         $object = $this->getWeightControlsByMonth($user->id, now()->month);
