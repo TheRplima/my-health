@@ -69,6 +69,27 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(WeightControl::class)->whereDate('created_at', now()->toDateString());
     }
 
+    public function getLatestWeightControls($n)
+    {
+        return $this->weightControl()->orderBy('created_at', 'desc')->take($n)->get();
+    }
+
+    public function physicalActivities()
+    {
+        return $this->hasMany(PhysicalActivity::class);
+    }
+
+    public function getPhysicalActivities($n)
+    {
+        return $this->physicalActivities()->orderBy('created_at', 'desc')->take($n)->get();
+    }
+
+    //get physical activities today
+    public function physicalActivitiesToday()
+    {
+        return $this->hasMany(PhysicalActivity::class)->whereDate('date', now()->toDateString());
+    }
+
     public function waterIntakeContainers()
     {
         return $this->hasMany(WaterIntakeContainer::class);

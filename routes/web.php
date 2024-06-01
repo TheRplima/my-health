@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WaterIntakeController;
+use App\Http\Controllers\DashboardController;
 // use App\Http\Controllers\TaskController;
 // use App\Http\Controllers\WeatherController;
 use Illuminate\Foundation\Application;
@@ -27,9 +29,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -43,6 +43,13 @@ Route::get('/hello', function () {
 
 Route::get('/lazy', function () {
     return Inertia::render('LazyPage');
+});
+
+Route::middleware('auth')->controller(WaterIntakeController::class)->group(function () {
+    Route::get('water-intakes', 'index');
+    Route::get('water-intake/get-water-intake-by-day', 'getWaterIntakesByDay');
+    Route::post('water-intake', 'store')->name('water-intake.store');
+    Route::delete('water-intake/{id}', 'destroy');
 });
 
 // Route::middleware(['auth', 'admin'])->group(function () {

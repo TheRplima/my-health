@@ -89,10 +89,99 @@ class WaterIntakeService
 
     public function getWaterIntakesByDay(int $userId, string $date)
     {
-        // Get water intake records by day
+        // Get water intake records by day and return as a collection and  the total amount for the day
+        $waterIntakes = $this->waterIntakeRepository->getWaterIntakesByDay($userId, $date);
+        $totalAmount = $this->waterIntakeRepository->getTotalWaterIntakeByDay($userId, $date);
+
+        return [
+            'water_intakes' => new WaterIntakeCollection($waterIntakes),
+            'total_water_intake' => $totalAmount
+        ];
+    }
+
+    public function getTotalWaterIntakeByDay(int $userId, string $date)
+    {
+        // Get total water intake by day
+        return $this->waterIntakeRepository->getTotalWaterIntakeByDay($userId, $date);
+    }
+
+    public function getWaterIntakesByMonth(int $userId, string $date)
+    {
+        // Get water intake records by month
         return new WaterIntakeCollection(
-            $this->waterIntakeRepository->getWaterIntakesByDay($userId, $date)
+            $this->waterIntakeRepository->getWaterIntakesByMonth($userId, $date)
         );
+    }
+
+    public function getWaterIntakesByYear(int $userId, string $date)
+    {
+        // Get water intake records by year
+        return new WaterIntakeCollection(
+            $this->waterIntakeRepository->getWaterIntakesByYear($userId, $date)
+        );
+    }
+
+    public function getWaterIntakesByDateRange(int $userId, string $startDate, string $endDate)
+    {
+        // Get water intake records by date range
+        return new WaterIntakeCollection(
+            $this->waterIntakeRepository->getWaterIntakesByDateRange($userId, $startDate, $endDate)
+        );
+    }
+
+    public function getThisWeekWaterIntakeChartData(int $userId, $daily_goal = null)
+    {
+        $data = [];
+        $start = now()->startOfWeek()->subDays(1);
+        $end = now()->endOfWeek()->subDays(1);
+        $total = 0;
+        for ($i = $start; $i <= $end; $i->addDay()) {
+            $amount = $this->getTotalWaterIntakeByDay($userId, $i->toDateString());
+            $total += $amount;
+            $data[] = [$i->format('d/m'), round($amount), $daily_goal];
+        }
+        $data = array_merge([["Dia", "Consumo de água", "Meta"]], $data);
+
+        return $data;
+    }
+
+    public function getThisMonthWaterIntakeChartData(int $userId, $daily_goal = null)
+    {
+        $data = [];
+        $start = now()->startOfMonth();
+        $end = now()->endOfMonth();
+        $waterIntakes = $this->getWaterIntakesByDateRange($userId, $start->toDateString(), $end->toDateString());
+        $weeks = [];
+        for ($i = $start; $i <= $end; $i->addDay()) {
+            $weekStart = $i->copy()->startOfWeek(0);
+            $weekEnd = $i->copy()->endOfWeek(6);
+            if ($weekStart->month != $i->month) {
+                $weekStart = $i->copy()->startOfMonth();
+            }
+            if ($weekEnd->month != $i->month) {
+                $weekEnd = $i->copy()->endOfMonth();
+            }
+            $week = $weekStart->format('d/m') . ' - ' . $weekEnd->format('d/m');
+            if (!isset($weeks[$week])) {
+                $weeks[$week] = [0, 0];
+            }
+            $date = $i->toDateString();
+            //map the water intake amount to the week
+            $waterIntakesOfDay = $waterIntakes->filter(function ($waterIntake) use ($date) {
+                return $waterIntake->created_at->toDateString() == $date;
+            });
+            $amount = $waterIntakesOfDay->sum('amount');
+            $weekAmount = $weeks[$week][0] + $amount;
+            $weekGoal = $weeks[$week][1] + $daily_goal;
+            $weeks[$week] = [$weekAmount, $weekGoal];
+        }
+        foreach ($weeks as $week => $values) {
+            $data[] = [$week, (int)$values[0], $values[1]];
+        }
+
+        $data = array_merge([["Semana", "Consumo de água", "Meta"]], $data);
+
+        return $data;
     }
 
     public function showWaterIntakeToday(User $user)

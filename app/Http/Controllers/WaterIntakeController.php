@@ -7,6 +7,7 @@ use App\Http\Requests\GetWaterIntakeRequest;
 use App\Services\WaterIntakeService;
 use Illuminate\Http\Response;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class WaterIntakeController extends Controller
 {
@@ -15,7 +16,7 @@ class WaterIntakeController extends Controller
 
     public function __construct(WaterIntakeService $waterIntakeService)
     {
-        $this->middleware('auth:api');
+        // $this->middleware('auth:api');
         $this->waterIntakeService = $waterIntakeService;
     }
 
@@ -61,11 +62,17 @@ class WaterIntakeController extends Controller
 
         $waterIntakeChartData = array_merge([["Dia", "Consumo de água", "Meta"]], $waterIntakeChartData->toArray());
 
-        return response()->json([
-            'status' => 'success',
-            'total_amount' => $totalAmount,
-            'water_intake_list' => $waterIntakes,
-            'water_intake_chart' => $waterIntakeChartData
+        // return response()->json([
+        //     'status' => 'success',
+        //     'total_amount' => $totalAmount,
+        //     'water_intake_list' => $waterIntakes,
+        //     'water_intake_chart' => $waterIntakeChartData
+        // ]);
+
+        return Inertia::render('WaterIntake/Index', [
+            'waterIntakes' => $waterIntakes,
+            'waterIntakeChartData' => $waterIntakeChartData,
+            'totalAmount' => $totalAmount,
         ]);
     }
 
@@ -92,18 +99,18 @@ class WaterIntakeController extends Controller
     {
         $waterIntake = $this->waterIntakeService->delete($id);
 
-        if ($waterIntake) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Water Intake deleted successfully',
-                'water_intake' => $waterIntake,
-            ]);
-        }
+        // if ($waterIntake) {
+        //     return response()->json([
+        //         'status' => 'success',
+        //         'message' => 'Water Intake deleted successfully',
+        //         'water_intake' => $waterIntake,
+        //     ]);
+        // }
 
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Water Intake not found',
-        ], Response::HTTP_NOT_FOUND);
+        // return response()->json([
+        //     'status' => 'error',
+        //     'message' => 'Water Intake not found',
+        // ], Response::HTTP_NOT_FOUND);
     }
 
     public function getWaterIntakesByDay(GetWaterIntakeRequest $request)

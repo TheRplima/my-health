@@ -111,6 +111,31 @@ class PhysicalActivityService
         }
     }
 
+    public function getPhysicalActivitiesByDay(int $userId, string $date)
+    {
+        try {
+            $filters = ['start_date' => $date, 'end_date' => $date];
+            $physicalActivities = $this->getAll($userId, $filters);
+            return $physicalActivities;
+        } catch (\Exception $e) {
+            throw new FailedAction('Failed to get physical activities by day. Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function getPhysicalActivitiesByWeek(int $userId, string $date)
+    {
+        try {
+            $filters = [
+                'start_date' => date('Y-m-d', strtotime('sunday last week', strtotime($date))),
+                'end_date' => date('Y-m-d', strtotime('saturday this week', strtotime($date)))
+            ];
+            $physicalActivities = $this->getAll($userId, $filters);
+            return $physicalActivities;
+        } catch (\Exception $e) {
+            throw new FailedAction('Failed to get physical activities by week. Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
+
     public function getCategoryOptions()
     {
         try {

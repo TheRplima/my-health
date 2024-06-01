@@ -41,7 +41,7 @@ Route::controller(UserController::class)->group(function () {
     Route::post('unsubscribe-notification-channel/{user}/{channel}', [UserController::class, 'unsubscribeNotificationChannel'])->name('user.unsubscribe-notification-channel');
 });
 
-Route::controller(WaterIntakeController::class)->group(function () {
+Route::middleware('auth:api')->controller(WaterIntakeController::class)->group(function () {
     Route::get('water-intakes', 'index');
     Route::get('water-intake/get-water-intake-by-day', 'getWaterIntakesByDay');
     Route::post('water-intake', 'store')->name('water-intake.store');
