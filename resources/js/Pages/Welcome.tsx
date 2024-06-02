@@ -37,26 +37,31 @@ export default function Welcome({ auth, laravelVersion, phpVersion }: PageProps<
                     )}
                 </div>
 
-                <div className="max-w-7xl mx-auto p-6 lg:p-8">
-                    <div className="mt-16">
-                        <Container>
+                <div className="max-w-7xl mx-auto p-0 lg:p-8">
+                    <div className="mt-lg-5">
+                        <Container className='mx-0 px-0'>
                             <Row>
-                                <Col className='w-100 text-center'>
+                                <Col className='text-center'>
                                     <Card>
                                         <Card.Body>
                                             <div className="flex justify-center mb-5">
                                                 <CustonImage src='/storage/images/logo.png' className="w-32 h-32 sm:w-48 sm:h-48 text-gray-900 dark:text-white" />
                                             </div>
 
-                                            <Card className="mb-5 text-white" border="light">
+                                            <Card className="mb-5" border="light">
                                                 <Card.Img variant="top" src="/storage/images/minha-saude-welcome.jpg" />
-                                                <Card.ImgOverlay className='d-flex'>
+                                                <Card.ImgOverlay className='d-none d-lg-flex text-white'>
                                                     <Container className='align-self-center bg-dark bg-opacity-25 rounded p-5 mx-5'>
                                                         <Card.Title><h1>Bem-vindo ao Minha Saúde</h1></Card.Title>
                                                         <Card.Text>Seu sistema completo de gerenciamento de saúde pessoal.<br />Nossa missão é fornecer uma ferramenta fácil de usar e eficaz para ajudá-lo a manter e melhorar sua saúde e bem-estar.<br />Esperamos que o Minha Saúde se torne seu parceiro de confiança na jornada para uma vida mais saudável.<br />Junte-se a nós e comece a transformar sua saúde hoje!</Card.Text>
                                                         <Button variant="primary" href={route('register')}>Comece agora</Button>
                                                     </Container>
                                                 </Card.ImgOverlay>
+                                                <Card.Body className='d-lg-none'>
+                                                    <Card.Title><h1>Bem-vindo ao Minha Saúde</h1></Card.Title>
+                                                    <Card.Text>Seu sistema completo de gerenciamento de saúde pessoal.<br />Nossa missão é fornecer uma ferramenta fácil de usar e eficaz para ajudá-lo a manter e melhorar sua saúde e bem-estar.<br />Esperamos que o Minha Saúde se torne seu parceiro de confiança na jornada para uma vida mais saudável.<br />Junte-se a nós e comece a transformar sua saúde hoje!</Card.Text>
+                                                    <Button variant="primary" href={route('register')}>Comece agora</Button>
+                                                </Card.Body>
                                             </Card>
                                             <Card className="mb-5" border="light">
                                                 <Card.Body>
