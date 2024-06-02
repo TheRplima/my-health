@@ -40,7 +40,7 @@ const CardWaterIntakeToday: React.FC<PageProps> = ({ user, waterIntakes, totalWa
     return (
         <Card className="mb-3 w-100">
             <Card.Header className='d-flex'>
-                <Card.Title>Controle de Água</Card.Title>
+                <Card.Title>Consumo de Água Hoje</Card.Title>
             </Card.Header>
             <Card.Body>
                 <Card.Subtitle className="mb-3 text-muted"><strong>Meta diária:</strong> {user.daily_water_amount / 1000} litros</Card.Subtitle>
