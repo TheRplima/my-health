@@ -1,12 +1,11 @@
 import { useState, PropsWithChildren, ReactNode } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link } from '@inertiajs/react';
 import { User } from '@/types';
-import Logo from '@/Components/Logo';
-import { Image, NavDropdown } from 'react-bootstrap';
+import CustonImage from '@/Components/CustonImage';
+import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { route } from 'ziggy-js';
 
 export default function Authenticated({ user, header, children }: PropsWithChildren<{ user: User, header?: ReactNode }>) {
@@ -14,12 +13,7 @@ export default function Authenticated({ user, header, children }: PropsWithChild
 
     const UserMenu = (
         user.image ? (
-            <Image
-                src={'storage/' + user.image}
-                alt={user.name}
-                roundedCircle
-                style={{ width: '30px' }}
-            />
+            <CustonImage src={'storage/' + user.image} alt={user.name} width={50} className='rounded-circle' />
         ) : (
             user.name
         )
@@ -27,93 +21,55 @@ export default function Authenticated({ user, header, children }: PropsWithChild
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <nav className="bg-white border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            <div className="shrink-0 flex items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
+            <Navbar collapseOnSelect sticky="top" expand="lg" bg="white" variant="light" className='shadow'>
+                <Container>
+                    <Navbar.Brand href={route('welcome')} className='ms-lg-5 ms-md-0'>
+                        <CustonImage src='/storage/images/logo.png' width={100} />
+                    </Navbar.Brand>
+                    <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+                    <Navbar.Collapse id="responsive-navbar-nav">
+                        <Nav className="mr-auto w-100 flex justify-content-end">
+                            <Nav.Link href={route('water-intakes.index')}>Consumo de água</Nav.Link>
+                            <Nav.Link href="#">Controle de peso</Nav.Link>
+                            <Nav.Link href="#">Atividades Físicas</Nav.Link>
+                            <NavDropdown title="Relatórios" id="collasible-nav-dropdown">
+                                <NavDropdown.Item href="#">Consumo de água</NavDropdown.Item>
+                                <NavDropdown.Item href="#">Controle de peso</NavDropdown.Item>
+                                <NavDropdown.Item href="#">Atividades Físicas</NavDropdown.Item>
+                            </NavDropdown>
+                        </Nav>
+                        <Nav className='me-5'>
+                            <NavDropdown title={UserMenu} id="profile-dropdown" drop={'start'}>
+                                <NavDropdown.Item href="#">Registrar consumo de água</NavDropdown.Item>
+                                <NavDropdown.Item href="#">Registrar peso</NavDropdown.Item>
+                                <NavDropdown.Item href="#">Registrar atividade física</NavDropdown.Item>
+                                <NavDropdown.Item href={route('profile.edit')}>Perfil</NavDropdown.Item>
+                                <NavDropdown.Divider />
+                                <NavDropdown.Item href={route('logout')} style={{ 'color': 'red' }}>Log Out</NavDropdown.Item>
+                            </NavDropdown>
+                        </Nav>
+                    </Navbar.Collapse>
+                </Container>
+            </Navbar>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                                    <Logo />
-                                </NavLink>
+            <main>
+                <div className="py-12">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                            <div className="p-6 text-gray-900">
+                                {header && (
+                                    <header>
+                                        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
+                                    </header>
+                                )}
+                                <div className="flex items-center justify-between mb-2">
+                                    {children}
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="hidden sm:flex sm:items-center sm:ms-6">
-                            <div className="me-3 mt-3 relative">
-                                <NavDropdown title={UserMenu} id="profile-dropdown">
-                                    <NavDropdown.Item href={route('profile.edit')}>Perfil</NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item href={route('logout')} style={{ 'color': 'red' }}>
-                                        Log Out
-                                    </NavDropdown.Item>
-                                </NavDropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
-                            >
-                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                    <path
-                                        className={!showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
                         </div>
                     </div>
                 </div>
-
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                    <div className="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <div className="pt-4 pb-1 border-t border-gray-200">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800">
-                                {user.name}
-                            </div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
-                </header>
-            )}
-
-            <main>{children}</main>
+            </main>
         </div>
     );
 }

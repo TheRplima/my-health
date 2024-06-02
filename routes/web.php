@@ -46,7 +46,7 @@ Route::get('/lazy', function () {
 });
 
 Route::middleware('auth')->controller(WaterIntakeController::class)->group(function () {
-    Route::get('water-intakes', 'index');
+    Route::get('water-intakes', 'index')->name('water-intakes.index');
     Route::get('water-intake/get-water-intake-by-day', 'getWaterIntakesByDay');
     Route::post('water-intake', 'store')->name('water-intake.store');
     Route::delete('water-intake/{id}', 'destroy');
