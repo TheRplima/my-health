@@ -42,8 +42,6 @@ RUN echo "\
     server {\n\
         listen 8000;\n\
         listen [::]:8000;\n\
-        server_name minha-saude.fly.dev www.minha-saude.fly.dev;\n\
-        return 301 https://$host$request_uri;\n\
         root /var/www/html/public;\n\
         add_header X-Frame-Options \"SAMEORIGIN\";\n\
         add_header X-Content-Type-Options \"nosniff\";\n\
