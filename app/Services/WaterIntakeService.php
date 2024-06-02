@@ -132,8 +132,8 @@ class WaterIntakeService
     public function getThisWeekWaterIntakeChartData(int $userId, $daily_goal = null)
     {
         $data = [];
-        $start = now()->startOfWeek()->subDays(1);
-        $end = now()->endOfWeek()->subDays(1);
+        $start = now()->startOfWeek(0);
+        $end = now()->endOfWeek(6);
         $total = 0;
         for ($i = $start; $i <= $end; $i->addDay()) {
             $amount = $this->getTotalWaterIntakeByDay($userId, $i->toDateString());
