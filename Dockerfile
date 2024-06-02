@@ -80,6 +80,12 @@ RUN chown -R www-data:www-data /var/www/html
 
 RUN composer install
 
+# Install npm dependencies
+RUN npm install
+
+# Build assets
+RUN npm run build
+
 EXPOSE 8000
 
 # Install cron

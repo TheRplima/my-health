@@ -4,7 +4,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { Card } from "react-bootstrap";
 
 interface WeightControlChartProps {
-    data?: any[] | {};
+    data?: any[];
     title?: string;
     vAxisTitle?: string;
     hAxisTitle?: string;

@@ -9,6 +9,8 @@ import { Head, Link, useForm } from '@inertiajs/react';
 
 import { Col, Container, Row, Form, Button, Card } from 'react-bootstrap';
 
+import { route } from 'ziggy-js';
+
 export default function Login({ status, canResetPassword }: { status?: string, canResetPassword: boolean }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',

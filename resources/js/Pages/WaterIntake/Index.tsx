@@ -1,6 +1,14 @@
 import React from 'react';
 
-export default function Index({ waterIntakes, totalAmount }) {
+export interface WaterIntake {
+    id: number;
+    amount: number;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
+const Index: React.FC<{ waterIntakes: WaterIntake[], totalAmount: number }> = ({ waterIntakes, totalAmount }) => {
     return (
         <div className="py-12">
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -24,3 +32,5 @@ export default function Index({ waterIntakes, totalAmount }) {
         </div>
     );
 }
+
+export default Index;

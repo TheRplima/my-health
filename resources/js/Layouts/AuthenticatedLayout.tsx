@@ -7,6 +7,7 @@ import { Link } from '@inertiajs/react';
 import { User } from '@/types';
 import Logo from '@/Components/Logo';
 import { Image, NavDropdown } from 'react-bootstrap';
+import { route } from 'ziggy-js';
 
 export default function Authenticated({ user, header, children }: PropsWithChildren<{ user: User, header?: ReactNode }>) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
@@ -48,7 +49,7 @@ export default function Authenticated({ user, header, children }: PropsWithChild
                                 <NavDropdown title={UserMenu} id="profile-dropdown">
                                     <NavDropdown.Item href={route('profile.edit')}>Perfil</NavDropdown.Item>
                                     <NavDropdown.Divider />
-                                    <NavDropdown.Item href={route('logout')} method="post" as="button" style={{ 'color': 'red' }}>
+                                    <NavDropdown.Item href={route('logout')} style={{ 'color': 'red' }}>
                                         Log Out
                                     </NavDropdown.Item>
                                 </NavDropdown>

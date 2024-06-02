@@ -5,7 +5,7 @@ import { Card } from "react-bootstrap";
 
 //define the props
 interface WaterIntakeChartProps {
-    data?: any[] | {};
+    data?: any[];
     title?: string;
     vAxisTitle?: string;
     hAxisTitle?: string;
