@@ -4,8 +4,7 @@ import { router } from '@inertiajs/react'
 
 import PrimaryButton from '../Components/PrimaryButton';
 import { FiTrash } from 'react-icons/fi';
-import Card from 'react-bootstrap/Card';
-import ProgressBar from 'react-bootstrap/ProgressBar';
+import { Card, Table } from 'react-bootstrap';
 
 interface User {
     id: number;
@@ -83,8 +82,8 @@ const CardThisWeekPhysicalActivities: React.FC<PageProps> = ({ user, physicalAct
                 <Card.Subtitle className="mb-3 text-muted">Total de horas de atividades no período: <strong>{totalDuration}h</strong></Card.Subtitle>
                 <Card.Subtitle className="mb-3 text-muted">Média de calorias queimadas por atividade: <strong>{(totalCaloriesBurned / countPhysicalActivities).toFixed(2)}Kcal</strong></Card.Subtitle>
                 <Card.Subtitle className="mb-3 text-muted">Média de calorias queimadas por dia: <strong>{(totalCaloriesBurned / daysWorkedOut).toFixed(2)}Kcal</strong></Card.Subtitle>
-                <table className="table table-hover">
-                    <thead>
+                <Table hover responsive variant="light">
+                    <thead className="light">
                         <tr>
                             <th scope="col" className='text-center'>Data</th>
                             <th scope="col" className='text-center'>Início</th>
@@ -114,7 +113,7 @@ const CardThisWeekPhysicalActivities: React.FC<PageProps> = ({ user, physicalAct
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                </Table>
             </Card.Body>
         </Card>
     )
