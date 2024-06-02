@@ -37,7 +37,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }: PageProps<
                     )}
                 </div>
 
-                <div className="max-w-7xl mx-auto p-0 lg:p-8">
+                <div className="max-w-7xl mx-auto p-3 lg:p-8">
                     <div className="mt-lg-5">
                         <Container className='mx-0 px-0'>
                             <Row>
