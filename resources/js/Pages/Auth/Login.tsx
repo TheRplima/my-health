@@ -93,6 +93,12 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                                     </div>
 
                                     <div className="flex items-center justify-center mt-4 align-center w-100">
+                                        <PrimaryButton className="ms-4" disabled={processing}>
+                                            Entrar
+                                        </PrimaryButton>
+                                    </div>
+
+                                    <div className="flex items-center justify-between mt-4 align-center w-100">
                                         {canResetPassword && (
                                             <>
                                                 <Link
@@ -103,10 +109,12 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                                                 </Link>
                                             </>
                                         )}
-
-                                        <PrimaryButton className="ms-4" disabled={processing}>
-                                            Entrar
-                                        </PrimaryButton>
+                                        <Link
+                                            href={route('register')}
+                                            className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        >
+                                            Fazer cadastro
+                                        </Link>
                                     </div>
                                 </form>
                             </Card.Body>

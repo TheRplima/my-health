@@ -3,8 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WaterIntakeController;
 use App\Http\Controllers\DashboardController;
-// use App\Http\Controllers\TaskController;
-// use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\WaterIntakeContainerController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -52,17 +51,11 @@ Route::middleware('auth')->controller(WaterIntakeController::class)->group(funct
     Route::delete('water-intake/{id}', 'destroy');
 });
 
-// Route::middleware(['auth', 'admin'])->group(function () {
-//     // Admin routes here
-//     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
-//     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
-//     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
-//     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
-// });
-
-// Route::controller(WeatherController::class)->group(function () {
-//     Route::get('/weather', 'index')->name('weather.index');
-//     Route::get('/weather', 'getWeather')->name('get-weather-info');
-// });
+Route::middleware('auth')->controller(WaterIntakeContainerController::class)->group(function () {
+    Route::get('water-intake-containers', 'index');
+    Route::post('water-intake-container', 'store')->name('water-intake-container.store');
+    Route::put('water-intake-container/{id}', 'update');
+    Route::delete('water-intake-container/{id}', 'destroy');
+});
 
 require __DIR__ . '/auth.php';

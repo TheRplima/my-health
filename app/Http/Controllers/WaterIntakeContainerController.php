@@ -7,6 +7,8 @@ use App\Http\Requests\StoreWaterIntakeContainerRequest;
 use App\Services\WaterIntakeContainerService;
 use App\Models\WaterIntakeContainer;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class WaterIntakeContainerController extends Controller
 {
@@ -16,7 +18,6 @@ class WaterIntakeContainerController extends Controller
 
     public function __construct(WaterIntakeContainerService $waterIntakeContainerService)
     {
-        $this->middleware('auth:api');
         $this->waterIntakeContainerService = $waterIntakeContainerService;
     }
 
@@ -39,15 +40,24 @@ class WaterIntakeContainerController extends Controller
      */
     public function store(StoreWaterIntakeContainerRequest $request)
     {
-        $data = $request->validated();
-        $data['user_id'] = auth()->user()->id ?? $request->user_id;
-        $waterIntakeContainer = $this->waterIntakeContainerService->create($data);
+        try {
+            $data = $request->validated();
+            $data['user_id'] = auth()->user()->id ?? $request->user_id;
+            $waterIntakeContainer = $this->waterIntakeContainerService->create($data);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Water Intake container created successfully',
-            'water_intake_container' => $waterIntakeContainer,
-        ]);
+            return redirect('dashboard')->with([
+                'message' => __('Water intake container created successfully'),
+                'type' => 'success',
+                'title' => 'Success',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return redirect('dashboard')->with([
+                'message' => __('Error creating water intake container'),
+                'type' => 'error',
+                'title' => 'Error',
+            ]);
+        }
     }
 
     /**

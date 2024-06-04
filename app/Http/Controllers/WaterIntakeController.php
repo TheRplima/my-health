@@ -83,12 +83,28 @@ class WaterIntakeController extends Controller
     {
         $data = $request->validated();
         $data['user_id'] = auth()->user()->id ?? $request->user_id;
-        $waterIntake = $this->waterIntakeService->create($data);
+        $response = $this->waterIntakeService->create($data);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Water Intake created successfully',
-            'water_intake' => $waterIntake,
+        if ($response) {
+            $status = isset($response['success']) ? 'success' : 'error';
+            $json = [
+                'status' => $status,
+                'message' => $response[$status],
+            ];
+            if ($status === 'success') {
+                $json['water_intake'] = $response['data'];
+            }
+        } else {
+            $json = [
+                'status' => 'error',
+                'message' => 'Erro ao salvar o consumo de água',
+            ];
+        }
+
+        return to_route('dashboard')->with([
+            'message' => $json['message'],
+            'type' => $json['status'],
+            'title' => $json['status'] === 'success' ? 'Successo' : 'Erro',
         ]);
     }
 
@@ -99,18 +115,19 @@ class WaterIntakeController extends Controller
     {
         $waterIntake = $this->waterIntakeService->delete($id);
 
-        // if ($waterIntake) {
-        //     return response()->json([
-        //         'status' => 'success',
-        //         'message' => 'Water Intake deleted successfully',
-        //         'water_intake' => $waterIntake,
-        //     ]);
-        // }
+        if ($waterIntake) {
+            return redirect('dashboard')->with([
+                'message' => __('Consumo de água deletado com sucesso'),
+                'type' => 'success',
+                'title' => 'Successo',
+            ]);
+        }
 
-        // return response()->json([
-        //     'status' => 'error',
-        //     'message' => 'Water Intake not found',
-        // ], Response::HTTP_NOT_FOUND);
+        return redirect('dashboard')->with([
+            'message' => __('Erro ao deletar o consumo de água'),
+            'type' => 'error',
+            'title' => 'Erro',
+        ]);
     }
 
     public function getWaterIntakesByDay(GetWaterIntakeRequest $request)

@@ -1,11 +1,12 @@
-import React from 'react'
-
+import React, { useState } from 'react'
 import { router } from '@inertiajs/react'
-
-import PrimaryButton from '../Components/PrimaryButton';
 import { FiTrash } from 'react-icons/fi';
 import Card from 'react-bootstrap/Card';
 import ProgressBar from 'react-bootstrap/ProgressBar';
+import Table from 'react-bootstrap/Table';
+import Button from 'react-bootstrap/Button';
+
+import RegisterWaterIntakeModal from './RegisterWaterIntakeModal';
 
 interface User {
     id: number;
@@ -33,6 +34,14 @@ interface PageProps {
 }
 
 const CardWaterIntakeToday: React.FC<PageProps> = ({ user, waterIntakes, totalWaterIntake }) => {
+    const [amount, setAmount] = useState<number | string>(0);
+
+    function handleRegisterWaterIntake() {
+        router.post('/water-intake', {
+            amount: amount
+        });
+    }
+
     function deleteWaterIntake(id: number) {
         router.delete(`/water-intake/${id}`);
     }
@@ -41,12 +50,13 @@ const CardWaterIntakeToday: React.FC<PageProps> = ({ user, waterIntakes, totalWa
         <Card className="mb-3 w-100">
             <Card.Header className='d-flex'>
                 <Card.Title>Consumo de Água Hoje</Card.Title>
+                <RegisterWaterIntakeModal handleRegisterWaterIntake={handleRegisterWaterIntake} setAmount={setAmount} amount={amount} />
             </Card.Header>
             <Card.Body>
                 <Card.Subtitle className="mb-3 text-muted"><strong>Meta diária:</strong> {user.daily_water_amount / 1000} litros</Card.Subtitle>
                 <Card.Subtitle className="mb-3 text-muted">Você consumiu <strong>{totalWaterIntake / 1000} litros</strong> de água hoje.</Card.Subtitle>
                 <ProgressBar animated now={totalWaterIntake} max={user.daily_water_amount} label={totalWaterIntake > 0 ? `${((totalWaterIntake / user.daily_water_amount) * 100).toFixed(2)}%` : ''} />
-                <table className="table table-hover">
+                <Table hover variant="light">
                     <thead>
                         <tr>
                             <th scope="col" className='text-center'>Data</th>
@@ -61,13 +71,13 @@ const CardWaterIntakeToday: React.FC<PageProps> = ({ user, waterIntakes, totalWa
                                     <td className='text-center'>{new Date(waterIntake.created_at).toLocaleTimeString('pt-BR')}</td>
                                     <td className='text-center'>{waterIntake.amount}ml</td>
                                     <td className='text-center'>
-                                        <PrimaryButton onClick={
+                                        <Button variant="danger" size={'sm'} onClick={
                                             () => {
                                                 if (confirm('Tem certeza que deseja excluir este registro?')) {
                                                     deleteWaterIntake(waterIntake.id);
                                                 }
                                             }
-                                        }><FiTrash /></PrimaryButton>
+                                        }><FiTrash /></Button>
                                     </td>
                                 </tr>
                             ))
@@ -81,7 +91,7 @@ const CardWaterIntakeToday: React.FC<PageProps> = ({ user, waterIntakes, totalWa
                             </tr>
                         )}
                     </tbody>
-                </table>
+                </Table>
             </Card.Body>
         </Card>
     )

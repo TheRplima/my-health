@@ -35,7 +35,7 @@ class DashboardController extends Controller
         $weightControls = $this->weightControlService->getWeightControlsByUser($this->user->id, 5);
         $thisYearBodyWeightVariationChartData = $this->weightControlService->getThisYearBodyWeightVariationChartData($this->user->id);
         $physicalActivities = $this->physicalActivityService->getPhysicalActivitiesByWeek($this->user->id, Carbon::now()->toDateString());
-
+        $waterIntakeContainers = auth()->user()->waterIntakeContainers;
         return Inertia::render('Dashboard', [
             'auth' => [
                 'user' => $this->user,
@@ -45,7 +45,8 @@ class DashboardController extends Controller
                 'monthlyWaterIntakeChartData' => $monthlyWaterIntakeChartData,
                 'weightControls' => $weightControls,
                 'thisYearBodyWeightVariationChartData' => $thisYearBodyWeightVariationChartData,
-                'physicalActivities' => $physicalActivities
+                'physicalActivities' => $physicalActivities,
+                'waterIntakeContainers' => $waterIntakeContainers,
             ]
         ]);
     }

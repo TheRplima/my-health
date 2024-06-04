@@ -45,6 +45,14 @@ export interface PhysicalActivity {
     created_at: string;
     updated_at: string;
 }
+export interface WaterIntakeContainer {
+    id: number;
+    name: string;
+    size: number;
+    icon: string;
+    active: number;
+}
+
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: {
@@ -56,5 +64,11 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
         weightControls: WeightControl[],
         thisYearBodyWeightVariationChartData: WeightControl[],
         physicalActivities: PhysicalActivity[],
-    };
+        waterIntakeContainers: WaterIntakeContainer[],
+    },
+    flash: {
+        message: string | null,
+        type: string | null,
+        title: string | null,
+    }
 };

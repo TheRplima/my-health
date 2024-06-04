@@ -24,7 +24,7 @@ class WaterIntakeService
         try {
             $waterIntake = $this->waterIntakeRepository->create($data);
 
-            if ($data['user_id'] == 1) {
+            if ($data['user_id'] == 1 && config('app.env') == 'production') {
                 $sendCallbackQueryHomeAssistant = new SendCallbackQueryHomeAssistant();
                 $sendCallbackQueryHomeAssistant(['amount' => $data['amount']]);
             }
@@ -67,7 +67,7 @@ class WaterIntakeService
             $waterIntake = $this->waterIntakeRepository->delete($id);
 
             if ($waterIntake) {
-                if ($waterIntake->user_id == 1) {
+                if ($waterIntake->user_id == 1 && config('app.env') == 'production') {
                     $sendCallbackQueryHomeAssistant = new SendCallbackQueryHomeAssistant();
                     $sendCallbackQueryHomeAssistant(['amount' => ($waterIntake->amount * -1)]);
                 }

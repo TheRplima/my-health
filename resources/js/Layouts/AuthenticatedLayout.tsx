@@ -1,15 +1,13 @@
-import { useState, PropsWithChildren, ReactNode } from 'react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link } from '@inertiajs/react';
+import { PropsWithChildren, ReactNode } from 'react';
 import { User } from '@/types';
 import CustonImage from '@/Components/CustonImage';
 import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { route } from 'ziggy-js';
+import { usePage } from '@inertiajs/react';
 
 export default function Authenticated({ user, header, children }: PropsWithChildren<{ user: User, header?: ReactNode }>) {
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+
+    const { csrf_token } = usePage().props;
 
     const UserMenu = (
         user.image ? (
@@ -18,6 +16,16 @@ export default function Authenticated({ user, header, children }: PropsWithChild
             user.name
         )
     )
+
+    function handleLogout(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+
+        const form = document.createElement('form');
+        form.action = route('logout');
+        form.method = 'POST';
+        document.body.appendChild(form);
+        form.submit();
+    }
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -45,7 +53,10 @@ export default function Authenticated({ user, header, children }: PropsWithChild
                                 <NavDropdown.Item href="#">Registrar atividade física</NavDropdown.Item>
                                 <NavDropdown.Item href={route('profile.edit')}>Perfil</NavDropdown.Item>
                                 <NavDropdown.Divider />
-                                <NavDropdown.Item href={route('logout')} style={{ 'color': 'red' }}>Log Out</NavDropdown.Item>
+                                <form method="post" action={route('logout')}>
+                                    <NavDropdown.Item as={'button'} style={{ 'color': 'red' }}>Sair</NavDropdown.Item>
+                                    <input type="hidden" name="_token" value={csrf_token as string} />
+                                </form>
                             </NavDropdown>
                         </Nav>
                     </Navbar.Collapse>

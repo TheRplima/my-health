@@ -10,7 +10,10 @@ import CardThisWeekPhysicalActivity from '@/Components/CardThisWeekPhysicalActiv
 import WaterIntakeChart from '@/Components/WaterIntakeChart';
 import WeightControlChart from '@/Components/WeightControlChart';
 
-export default function Dashboard({ auth }: PageProps) {
+import { usePage } from '@inertiajs/react'
+import AlertDismissible from '@/Components/AlertDismissible';
+
+export default function Dashboard({ auth, flash }: PageProps) {
 
     return (
         <AuthenticatedLayout
@@ -20,12 +23,15 @@ export default function Dashboard({ auth }: PageProps) {
             <Head title="Dashboard" />
 
             <Container>
+                {flash.message && (
+                    <AlertDismissible variant={flash.type ?? 'info'} message={flash.message} heading={flash.title} />
+                )}
                 <Row>
                     <Col lg={6} className='mb-3 d-flex align-items-stretch'>
                         <WaterIntakeChart data={auth.weeklyWaterIntakeChartData} title={'Consumo de água na semana'} hAxisTitle={'Dia'} />
                     </Col>
                     <Col lg={6} className='mb-3 d-flex align-items-stretch'>
-                        <WaterIntakeChart data={auth.monthlyWaterIntakeChartData} title={'Consumo de água na semana'} hAxisTitle={'Semana'} />
+                        <WaterIntakeChart data={auth.monthlyWaterIntakeChartData} title={'Consumo de água no mês'} hAxisTitle={'Semana'} />
                     </Col>
                 </Row>
                 <Row>
