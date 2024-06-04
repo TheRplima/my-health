@@ -8,7 +8,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 
-export default function RegisterWeightControl(props) {
+interface Props {
+    handleRegisterWeightControl: () => void;
+    setDate: (date: string) => void;
+    setWeight: (weight: string) => void;
+}
+
+export default function RegisterWeightControlModal(props: Props) {
     const [show, setShow] = useState(false);
 
     library.add(fas);
@@ -22,7 +28,7 @@ export default function RegisterWeightControl(props) {
     return (
         <>
             <Button className='ms-auto' size='sm' variant="primary" title='Registrar peso atual' onClick={handleShow} >
-                <FontAwesomeIcon icon={['fa', 'plus']} />
+                <FontAwesomeIcon icon={['fas', 'plus']} />
             </Button>
 
             <Modal show={show} onHide={handleClose}>
@@ -30,12 +36,12 @@ export default function RegisterWeightControl(props) {
                     <Modal.Title>Registrar peso atual</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                <Row>
+                    <Row>
                         <Col>
-                        <Form.Control type='date' name="dob" defaultValue={new Date().toISOString().split('T')[0]} onChange={e => props.setDate(e.target.value)} />
+                            <Form.Control type='date' name="dob" defaultValue={new Date().toISOString().split('T')[0]} onChange={e => props.setDate(e.target.value)} />
                         </Col>
                         <Col>
-                    <Form.Control required name="weight" placeholder="Peso atual em Kg" onChange={e => props.setWeight(e.target.value)} autoFocus={true} />
+                            <Form.Control required name="weight" placeholder="Peso atual em Kg" onChange={e => props.setWeight(e.target.value)} autoFocus={true} />
                         </Col>
                     </Row>
                 </Modal.Body>
