@@ -20,7 +20,7 @@ export default function AlertDismissible(props: Props) {
 
     if (show) {
         return (
-            <Alert variant={type} onClose={() => setShow(false)} show={show} dismissible transition={true} style={{ position: "absolute", top: 100, right: 0, zIndex: 999, opacity: .8 }} >
+            <Alert variant={type} onClose={() => setShow(false)} show={show} dismissible transition={true} style={{ position: "absolute", top: 100, right: 0, zIndex: 999, opacity: .9 }} >
                 {props.heading && <Alert.Heading>{props.heading}</Alert.Heading>}
                 <p>
                     {props.message}
