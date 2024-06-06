@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WaterIntakeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WaterIntakeContainerController;
+use App\Http\Controllers\WeightControlController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -49,6 +50,13 @@ Route::middleware('auth')->controller(WaterIntakeController::class)->group(funct
     Route::get('water-intake/get-water-intake-by-day', 'getWaterIntakesByDay');
     Route::post('water-intake', 'store')->name('water-intake.store');
     Route::delete('water-intake/{id}', 'destroy');
+});
+
+Route::middleware('auth')->controller(WeightControlController::class)->group(function () {
+    Route::get('weight-controls', 'index');
+    Route::post('weight-control', 'store')->name('weight-control.store');
+    Route::put('weight-control/{id}', 'update');
+    Route::delete('weight-control/{id}', 'destroy');
 });
 
 Route::middleware('auth')->controller(WaterIntakeContainerController::class)->group(function () {

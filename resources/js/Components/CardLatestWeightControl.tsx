@@ -1,10 +1,11 @@
 import React from 'react'
-
 import { router } from '@inertiajs/react'
 
-import PrimaryButton from '../Components/PrimaryButton';
+import Table from 'react-bootstrap/Table';
+import Button from 'react-bootstrap/Button';
 import { FiTrash } from 'react-icons/fi';
 import Card from 'react-bootstrap/Card';
+import RegisterWeightControlModal from './RegisterWeightControlModal';
 
 interface User {
     id: number;
@@ -31,6 +32,16 @@ interface PageProps {
 }
 
 const CardLatestWeightControl: React.FC<PageProps> = ({ user, weightControls }) => {
+    const [weight, setWeight] = React.useState<number>(0);
+    const [date, setDate] = React.useState<string>('');
+
+    function handleRegisterWeightControl() {
+        router.post('/weight-control', {
+            weight: weight,
+            date: date
+        });
+    }
+
     function deleteWeightControl(id: number) {
         router.delete(`/weight-control/${id}`);
     }
@@ -39,11 +50,12 @@ const CardLatestWeightControl: React.FC<PageProps> = ({ user, weightControls }) 
         <Card className="mb-3 w-100">
             <Card.Header className='d-flex'>
                 <Card.Title>Controle de Peso</Card.Title>
+                <RegisterWeightControlModal handleRegisterWeightControl={handleRegisterWeightControl} setWeight={setWeight} setDate={setDate} />
             </Card.Header>
             <Card.Body>
                 <Card.Subtitle className="mb-3 text-muted"><strong>Peso atual:</strong> {user.weight}Kg</Card.Subtitle>
                 <Card.Subtitle className="mb-3 text-muted"><strong>Últimos 5 registros</strong></Card.Subtitle>
-                <table className="table table-hover">
+                <Table hover variant="light">
                     <thead>
                         <tr>
                             <th scope="col" className='text-center'>Data</th>
@@ -58,13 +70,13 @@ const CardLatestWeightControl: React.FC<PageProps> = ({ user, weightControls }) 
                                     <td className='text-center'>{new Date(weightControl.created_at).toLocaleDateString('pt-BR')}</td>
                                     <td className='text-center'>{weightControl.weight}kg</td>
                                     <td className='text-center'>
-                                        <PrimaryButton onClick={
+                                        <Button variant="danger" size={'sm'} onClick={
                                             () => {
                                                 if (confirm('Tem certeza que deseja excluir este registro?')) {
                                                     deleteWeightControl(weightControl.id);
                                                 }
                                             }
-                                        }><FiTrash /></PrimaryButton>
+                                        }><FiTrash /></Button>
                                     </td>
                                 </tr>
                             ))
@@ -78,7 +90,7 @@ const CardLatestWeightControl: React.FC<PageProps> = ({ user, weightControls }) 
                             </tr>
                         )}
                     </tbody>
-                </table>
+                </Table>
             </Card.Body>
         </Card>
     )

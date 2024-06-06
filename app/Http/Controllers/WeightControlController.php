@@ -17,7 +17,6 @@ class WeightControlController extends Controller
 
     public function __construct(WeightControlService $wheightControlService)
     {
-        $this->middleware('auth:api');
         $this->wheightControlService = $wheightControlService;
     }
 

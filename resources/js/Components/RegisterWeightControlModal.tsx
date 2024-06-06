@@ -11,7 +11,7 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 interface Props {
     handleRegisterWeightControl: () => void;
     setDate: (date: string) => void;
-    setWeight: (weight: string) => void;
+    setWeight: (weight: number) => void;
 }
 
 export default function RegisterWeightControlModal(props: Props) {
